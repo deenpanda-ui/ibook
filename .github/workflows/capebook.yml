@@ -38,9 +38,9 @@ jobs:
           grep -E "error:|warning: .*deprecated|BUILD (SUCCEEDED|FAILED)" build.log | head -200 > /tmp/out/errors-$N.txt || true
           echo "${{ steps.build.outcome }}" > /tmp/out/status-$N.txt
           if [ -f CapeBook.ipa ]; then cp CapeBook.ipa /tmp/out/CapeBook-$N.ipa; fi
-          git config user.name "capebook-ci"; git config user.email "capebook-ci@users.noreply.github.com"
-          git fetch origin capebook-builds || true
-          if git rev-parse --verify origin/capebook-builds >/dev/null 2>&1; then git checkout -B capebook-builds origin/capebook-builds; else git checkout --orphan capebook-builds; git rm -rqf . || true; fi
-          rm -f CapeBook-*.ipa
+          # в ветку результатов — только последний IPA и журнал (чистая история, без файлов сборки)
+          mkdir -p /tmp/pub && cd /tmp/pub && git init -q && git checkout -q -b capebook-builds
           cp /tmp/out/* .
-          git add -A . && git commit -qm "build $N: ${{ steps.build.outcome }}" && git push -q origin capebook-builds
+          git config user.name "capebook-ci"; git config user.email "capebook-ci@users.noreply.github.com"
+          git add -A . && git commit -qm "build $N: ${{ steps.build.outcome }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" capebook-builds
