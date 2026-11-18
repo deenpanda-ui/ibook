@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 @main
 struct CapeBookApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = Store.shared
 
     var body: some Scene {

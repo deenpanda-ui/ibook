@@ -32,6 +32,7 @@ struct ReaderSettings: Equatable {
     var theme: PaperTheme
     var lineSpacing: CGFloat
     var topInset: CGFloat
+    var lockOrientation: Bool
 
     static func load() -> ReaderSettings {
         let d = UserDefaults.standard
@@ -39,7 +40,8 @@ struct ReaderSettings: Equatable {
             fontSize: d.object(forKey: "rs.fontSize") as? CGFloat ?? 20,
             theme: PaperTheme(rawValue: d.integer(forKey: "rs.theme")) ?? .paper,
             lineSpacing: d.object(forKey: "rs.lineSpacing") as? CGFloat ?? 4,
-            topInset: d.object(forKey: "rs.topInset") as? CGFloat ?? 20)
+            topInset: d.object(forKey: "rs.topInset") as? CGFloat ?? 20,
+            lockOrientation: d.bool(forKey: "rs.lockOrientation"))
     }
     func save() {
         let d = UserDefaults.standard
@@ -47,6 +49,7 @@ struct ReaderSettings: Equatable {
         d.set(theme.rawValue, forKey: "rs.theme")
         d.set(lineSpacing, forKey: "rs.lineSpacing")
         d.set(topInset, forKey: "rs.topInset")
+        d.set(lockOrientation, forKey: "rs.lockOrientation")
     }
 }
 
@@ -76,7 +79,7 @@ enum Typesetter {
         return base
     }
 
-    static func build(_ blocks: [Block], settings s: ReaderSettings) -> ChapterText {
+    static func build(_ blocks: [Block], settings s: ReaderSettings, pageSize: CGSize) -> ChapterText {
         let out = NSMutableAttributedString()
         var starts: [Int] = []
         var anchors: [String: Int] = [:]
@@ -120,12 +123,30 @@ enum Typesetter {
                 para.firstLineHeadIndent = s.fontSize * 2
             case .empty:
                 para.paragraphSpacing = s.fontSize * 0.6
+            case .image:
+                para.alignment = .center
+                para.paragraphSpacingBefore = s.fontSize * 0.6
+                para.paragraphSpacing = s.fontSize * 0.6
             case .paragraph:
                 para.alignment = .justified
                 para.firstLineHeadIndent = s.fontSize * 1.4
             }
 
-            if b.kind == .empty {
+            if b.kind == .image {
+                if let data = b.imageData, let img = UIImage(data: data) {
+                    // картинка целиком помещается на страницу
+                    let maxW = pageSize.width, maxH = pageSize.height * 0.85
+                    let k = min(1, maxW / max(1, img.size.width), maxH / max(1, img.size.height))
+                    let att = NSTextAttachment()
+                    att.image = img
+                    att.bounds = CGRect(x: 0, y: 0, width: floor(img.size.width * k), height: floor(img.size.height * k))
+                    let a = NSMutableAttributedString(attachment: att)
+                    a.addAttribute(.paragraphStyle, value: para, range: NSRange(location: 0, length: a.length))
+                    out.append(a)
+                } else {
+                    out.append(NSAttributedString(string: " ", attributes: [.font: font(size: size, bold: false, italic: false), .paragraphStyle: para]))
+                }
+            } else if b.kind == .empty {
                 out.append(NSAttributedString(string: " ", attributes: [.font: font(size: size, bold: false, italic: false), .paragraphStyle: para]))
             } else {
                 for r in b.runs {

@@ -59,6 +59,10 @@ struct StatsView: View {
                     }
                     .buttonStyle(.glass)
                     .padding(.top, 10)
+                    ShareLink(item: Diagnostics.reportFile()) {
+                        Label("Отправить диагностику разработчику", systemImage: "ladybug").font(.footnote)
+                    }
+                    .padding(.top, 4)
                     Text("Время идёт, только пока открыт текст книги. Если 20 секунд нет касаний, перелистываний и движения телефона — таймер на паузе. День заканчивается в 5:00.")
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }

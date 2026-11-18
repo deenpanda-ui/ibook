@@ -15,12 +15,14 @@ enum BlockKind: Equatable {
     case epigraph
     case poem
     case empty
+    case image
 }
 
 struct Block {
     var kind: BlockKind
     var runs: [TextRun] = []
     var anchors: [String] = []      // id элементов, начинающихся в этом блоке (для оглавления)
+    var imageData: Data? = nil      // для блока-картинки
     var plainText: String { runs.map { $0.text }.joined() }
 }
 
@@ -87,6 +89,12 @@ struct BlockBuilder {
             current!.runs.append(TextRun(text: collapsed, bold: bold, italic: italic))
         }
     }
+    mutating func image(_ data: Data?) {
+        guard let data, data.count > 200 else { return }
+        flush()
+        blocks.append(Block(kind: .image, runs: [], anchors: pendingAnchors, imageData: data))
+        pendingAnchors = []
+    }
     mutating func lineBreak() {
         if current != nil { current!.runs.append(TextRun(text: "\u{2028}")) }
     }
@@ -99,7 +107,7 @@ struct BlockBuilder {
             let li = b.runs.count - 1
             while b.runs[li].text.hasSuffix(" ") { b.runs[li].text.removeLast() }
         }
-        if b.plainText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && b.kind != .empty {
+        if b.plainText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && b.kind != .empty && b.kind != .image {
             pendingAnchors.append(contentsOf: b.anchors)   // пустой блок — якоря переходят к следующему
             return
         }
@@ -236,46 +244,55 @@ final class EpubBook: BookContent {
               let tree = XMLTreeBuilder.parse(d) else { return [] }
         var b = BlockBuilder()
         let body = tree.find("body") ?? tree
-        EpubBook.walk(body, &b, bold: false, italic: false)
+        let base = (spine[chapter] as NSString).deletingLastPathComponent
+        let z = zip
+        let loader: (String) -> Data? = { src in z.read(EpubBook.join(base, src.components(separatedBy: "#")[0])) }
+        EpubBook.walk(body, &b, bold: false, italic: false, img: loader)
         let res = b.finish()
         cache[chapter] = res
         return res
     }
 
     private static let blockTags: Set<String> = ["p", "div", "li", "dt", "dd", "pre", "tr", "figcaption", "caption"]
-    private static func walk(_ n: XNode, _ b: inout BlockBuilder, bold: Bool, italic: Bool) {
+    private static func walk(_ n: XNode, _ b: inout BlockBuilder, bold: Bool, italic: Bool, img: (String) -> Data?) {
         for c in n.children {
             if c.isText { b.text(c.text, bold: bold, italic: italic); continue }
             b.anchor(c.attrs["id"])
             switch c.name {
             case "h1", "h2", "h3", "h4", "h5", "h6":
                 let lvl = Int(String(c.name.dropFirst())) ?? 1
-                b.begin(.title(lvl)); walk(c, &b, bold: bold, italic: italic); b.flush()
+                b.begin(.title(lvl)); walk(c, &b, bold: bold, italic: italic, img: img); b.flush()
             case "blockquote":
-                b.begin(.epigraph); walk(c, &b, bold: bold, italic: true); b.flush()
+                b.begin(.epigraph); walk(c, &b, bold: bold, italic: true, img: img); b.flush()
             case "br":
                 b.lineBreak()
             case "b", "strong":
-                walk(c, &b, bold: true, italic: italic)
+                walk(c, &b, bold: true, italic: italic, img: img)
             case "i", "em", "cite":
-                walk(c, &b, bold: bold, italic: true)
-            case "script", "style", "head", "title", "img", "svg", "image":
+                walk(c, &b, bold: bold, italic: true, img: img)
+            case "img":
+                if let src = c.attrs["src"] { b.image(img(src)) }
+            case "image":   // svg <image xlink:href=…>
+                if let src = c.attrs["href"] { b.image(img(src)) }
+            case "script", "style", "head", "title":
                 continue
+            case "svg":
+                walk(c, &b, bold: bold, italic: italic, img: img)
             case "hr":
                 b.begin(.empty); b.flush()
             default:
                 if blockTags.contains(c.name) {
                     // div с вложенными абзацами — контейнер, иначе — абзац
                     let hasBlocks = c.children.contains { !$0.isText && (blockTags.contains($0.name) || $0.name.hasPrefix("h")) }
-                    if hasBlocks { b.flush(); walk(c, &b, bold: bold, italic: italic); b.flush() }
+                    if hasBlocks { b.flush(); walk(c, &b, bold: bold, italic: italic, img: img); b.flush() }
                     else {
                         let cls = (c.attrs["class"] ?? "").lowercased()
                         let kind: BlockKind = cls.contains("title") || cls.contains("head") ? .title(2)
                             : cls.contains("epigraph") ? .epigraph : cls.contains("poem") || cls.contains("stanza") ? .poem : .paragraph
-                        b.begin(kind); walk(c, &b, bold: bold, italic: italic); b.flush()
+                        b.begin(kind); walk(c, &b, bold: bold, italic: italic, img: img); b.flush()
                     }
                 } else {
-                    walk(c, &b, bold: bold, italic: italic)   // section, span, a, body…
+                    walk(c, &b, bold: bold, italic: italic, img: img)   // section, span, a, body…
                 }
             }
         }
@@ -289,6 +306,7 @@ final class Fb2Book: BookContent {
     var toc: [TocEntry] = []
     private var chapters: [[Block]] = []
     var chapterCount: Int { chapters.count }
+    private static var binaries: [String: String] = [:]   // id → base64 (на время разбора)
 
     init?(url: URL) {
         guard let d = try? Data(contentsOf: url), let tree = XMLTreeBuilder.parse(d) else { return nil }
@@ -305,6 +323,9 @@ final class Fb2Book: BookContent {
                 }
             }
         }
+        Fb2Book.binaries = [:]
+        for bin in tree.all("binary") { if let id = bin.attrs["id"] { Fb2Book.binaries[id] = bin.innerText } }
+        defer { Fb2Book.binaries = [:] }
         // основной текст — первый body без name="notes"
         let bodies = tree.all("body")
         guard let body = bodies.first(where: { ($0.attrs["name"] ?? "") != "notes" }) ?? bodies.first else { return }
@@ -374,7 +395,12 @@ final class Fb2Book: BookContent {
             walk(c, &b, level: level, bold: true, italic: italic)
         case "emphasis":
             walk(c, &b, level: level, bold: bold, italic: true)
-        case "image", "binary", "table":
+        case "image":
+            if let href = c.attrs["href"] {
+                let id = href.hasPrefix("#") ? String(href.dropFirst()) : href
+                if let b64 = binaries[id] { b.image(Data(base64Encoded: b64, options: .ignoreUnknownCharacters)) }
+            }
+        case "binary", "table":
             return
         default:
             walk(c, &b, level: level, bold: bold, italic: italic)

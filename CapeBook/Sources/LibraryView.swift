@@ -9,7 +9,7 @@ struct LibraryView: View {
 
     private let columns = [GridItem(.flexible(), spacing: 26), GridItem(.flexible(), spacing: 26)]
     private var types: [UTType] {
-        var t: [UTType] = [.epub]
+        var t: [UTType] = [.epub, .zip]
         if let fb2 = UTType(filenameExtension: "fb2") { t.append(fb2) }
         return t
     }
@@ -20,7 +20,7 @@ struct LibraryView: View {
                 if store.books.isEmpty {
                     ContentUnavailableView("Здесь появятся ваши книги",
                                            systemImage: "books.vertical",
-                                           description: Text("Нажмите «+» и выберите EPUB или FB2 в «Файлах»."))
+                                           description: Text("Нажмите «+» и выберите EPUB, FB2 или FB2.ZIP в «Файлах»."))
                         .padding(.top, 80)
                 }
                 LazyVGrid(columns: columns, spacing: 30) {

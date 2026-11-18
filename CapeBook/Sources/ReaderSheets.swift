@@ -3,10 +3,53 @@ import SwiftUI
 struct TocView: View {
     let entries: [TocEntry]
     let currentChapter: Int
+    let bookID: UUID
     let onSelect: (TocEntry) -> Void
+    let onBookmark: (Bookmark) -> Void
+    @EnvironmentObject var store: Store
+    @State private var mode = 0
 
     var body: some View {
         NavigationStack {
+            Group {
+                if mode == 0 { contents } else { bookmarks }
+            }
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Picker("", selection: $mode) {
+                        Text("Содержание").tag(0)
+                        Text("Закладки").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 240)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private var bookmarks: some View {
+        let list = store.book(bookID)?.bookmarks ?? []
+        return List {
+            ForEach(list) { bm in
+                Button { onBookmark(bm) } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(bm.snippet.isEmpty ? "Закладка" : bm.snippet).lineLimit(2)
+                        Text(bm.createdAt.formatted(.dateTime.day().month().hour().minute())).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .swipeActions { Button(role: .destructive) { store.deleteBookmark(bookID: bookID, bm) } label: { Label("Удалить", systemImage: "trash") } }
+            }
+        }
+        .overlay {
+            if list.isEmpty {
+                ContentUnavailableView("Нет закладок", systemImage: "bookmark",
+                                       description: Text("Нажмите на значок закладки вверху страницы."))
+            }
+        }
+    }
+
+    private var contents: some View {
             ScrollViewReader { proxy in
                 List(entries) { e in
                     Button { onSelect(e) } label: {
@@ -24,9 +67,6 @@ struct TocView: View {
                     if let e = entries.last(where: { $0.chapter <= currentChapter }) { proxy.scrollTo(e.id, anchor: .center) }
                 }
             }
-            .navigationTitle("Содержание")
-            .navigationBarTitleDisplayMode(.inline)
-        }
     }
 }
 
@@ -49,6 +89,7 @@ struct ReaderSettingsView: View {
                         Text("Отступ текста сверху: \(Int(settings.topInset))")
                         Slider(value: $settings.topInset, in: 0...80, step: 2)
                     }
+                    Toggle("Не поворачивать экран", isOn: $settings.lockOrientation)
                 }
             }
             .navigationTitle("Оформление")

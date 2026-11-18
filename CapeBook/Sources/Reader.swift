@@ -60,6 +60,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private var current: (chapter: Int, page: Int) = (0, 0)
     private var chromeHidden = true
     private let progressLabel = UILabel()
+    private var bookmarkItem = UIBarButtonItem()
     private let timer: ReadingTimer
 
     init(book: Book, content: BookContent) {
@@ -92,8 +93,10 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         title = book.title
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"),
                                                            style: .plain, target: self, action: #selector(close))
+        bookmarkItem = UIBarButtonItem(image: UIImage(systemName: "bookmark"), style: .plain, target: self, action: #selector(toggleBookmark))
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "list.bullet"), style: .plain, target: self, action: #selector(showToc)),
+            bookmarkItem,
             UIBarButtonItem(image: UIImage(systemName: "textformat.size"), style: .plain, target: self, action: #selector(showSettings))
         ]
         progressLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
@@ -116,11 +119,27 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         timer.start()
+        applyOrientation()
+        Diagnostics.log("книга открыта: \(book.title)")
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         timer.stop(progress: book.progress)
         savePosition()
+        OrientationLock.set(.portrait, from: view.window)   // библиотека — всегда вертикально
+    }
+    /// В книге поворот разрешён, если не включено «Не поворачивать»
+    private func applyOrientation() {
+        guard let scene = view.window?.windowScene else { return }
+        let mask: UIInterfaceOrientationMask
+        if settings.lockOrientation {
+            switch scene.effectiveGeometry.interfaceOrientation {
+            case .landscapeLeft: mask = .landscapeLeft
+            case .landscapeRight: mask = .landscapeRight
+            default: mask = .portrait
+            }
+        } else { mask = .allButUpsideDown }
+        OrientationLock.set(mask, from: view.window)
     }
     @objc private func appBackground() { timer.pause(progress: book.progress); savePosition() }
     @objc private func appForeground() { timer.resume() }
@@ -150,7 +169,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     }
     private func pages(_ chapter: Int) -> ChapterPages {
         if let p = chapters[chapter] { return p }
-        let text = Typesetter.build(content.blocks(chapter: chapter), settings: settings)
+        let text = Typesetter.build(content.blocks(chapter: chapter), settings: settings, pageSize: pageSize)
         let p = ChapterPages(text: text, pageSize: pageSize)
         chapters[chapter] = p
         // не держать в памяти далёкие главы
@@ -202,10 +221,36 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         progressLabel.text = "\(Int((book.progress * 100).rounded())) %"
         progressLabel.sizeToFit()
         timer.activity(pageTurn: true)
+        updateBookmarkIcon()
     }
     private func savePosition() {
-        book.lastOpenedAt = Date()
-        Store.shared.update(book)
+        // берём свежую запись (там могут быть новые закладки) и меняем только место чтения
+        guard var fresh = Store.shared.book(book.id) else { return }
+        fresh.progress = book.progress
+        fresh.chapter = book.chapter
+        fresh.offset = book.offset
+        fresh.lastOpenedAt = Date()
+        Store.shared.update(fresh)
+        book = fresh
+    }
+    private var currentRange: NSRange {
+        guard let p = chapters[current.chapter], current.page < p.ranges.count else { return NSRange(location: 0, length: 0) }
+        return p.ranges[current.page]
+    }
+    private func updateBookmarkIcon() {
+        let r = currentRange
+        let marked = (Store.shared.book(book.id)?.bookmarks ?? []).contains { $0.chapter == current.chapter && NSLocationInRange($0.offset, r) }
+        bookmarkItem.image = UIImage(systemName: marked ? "bookmark.fill" : "bookmark")
+    }
+    @objc private func toggleBookmark() {
+        let r = currentRange
+        let text = (chapters[current.chapter]?.text.string.string ?? "") as NSString
+        let snipRange = NSRange(location: r.location, length: min(140, max(0, min(r.length, text.length - r.location))))
+        let snippet = text.length > 0 && snipRange.location < text.length ? text.substring(with: snipRange) : ""
+        let added = Store.shared.toggleBookmark(bookID: book.id, chapter: current.chapter, range: r,
+                                                snippet: snippet.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces))
+        UIImpactFeedbackGenerator(style: added ? .medium : .light).impactOccurred()
+        updateBookmarkIcon()
     }
 
     // MARK: перелистывание
@@ -295,9 +340,12 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let off = currentOffset()
         let host = UIHostingController(rootView: ReaderSettingsView(settings: settings) { [weak self] new in
             guard let self else { return }
+            let needsLayout = new.fontSize != self.settings.fontSize || new.lineSpacing != self.settings.lineSpacing
+                || new.theme != self.settings.theme || new.topInset != self.settings.topInset
             self.settings = new
             new.save()
-            self.relayout(goTo: self.current.chapter, offset: off)
+            if needsLayout { self.relayout(goTo: self.current.chapter, offset: off) }
+            self.applyOrientation()
         })
         if let sheet = host.sheetPresentationController { sheet.detents = [.medium()]; sheet.prefersGrabberVisible = true }
         present(host, animated: true)
@@ -306,10 +354,18 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let entries = content.toc.isEmpty
             ? (0..<content.chapterCount).map { TocEntry(title: "Глава \($0 + 1)", chapter: $0, anchor: nil, block: nil, level: 1) }
             : content.toc
-        let host = UIHostingController(rootView: TocView(entries: entries, currentChapter: current.chapter) { [weak self] e in
-            self?.dismiss(animated: true)
-            self?.go(to: e)
-        })
+        let host = UIHostingController(rootView: TocView(entries: entries, currentChapter: current.chapter, bookID: book.id,
+            onSelect: { [weak self] e in
+                self?.dismiss(animated: true)
+                self?.go(to: e)
+            },
+            onBookmark: { [weak self] bm in
+                guard let self else { return }
+                self.dismiss(animated: true)
+                let p = self.pages(bm.chapter)
+                self.show(bm.chapter, p.page(containing: bm.offset), animated: true, forward: bm.chapter >= self.current.chapter)
+                self.savePosition()
+            }).environmentObject(Store.shared))
         if let sheet = host.sheetPresentationController { sheet.detents = [.medium(), .large()]; sheet.prefersGrabberVisible = true }
         present(host, animated: true)
     }
@@ -372,6 +428,34 @@ final class ReadingTimer {
         }
         startProgress = progress
         seconds = 0; pages = 0; sessionStart = Date()
+    }
+}
+
+// MARK: - Поворот экрана: библиотека всегда вертикально, книга — по настройке
+
+enum OrientationLock {
+    static var mask: UIInterfaceOrientationMask = .portrait
+    static func set(_ m: UIInterfaceOrientationMask, from window: UIWindow?) {
+        mask = m
+        guard let window, let scene = window.windowScene else { return }
+        var vc = window.rootViewController
+        while let v = vc {
+            v.setNeedsUpdateOfSupportedInterfaceOrientations()
+            vc = v.presentedViewController
+        }
+        if m == .portrait || m == .landscapeLeft || m == .landscapeRight {
+            scene.requestGeometryUpdate(.iOS(interfaceOrientations: m)) { _ in }
+        }
+    }
+}
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        Diagnostics.installCrashHandlers()
+        return true
+    }
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        OrientationLock.mask
     }
 }
 

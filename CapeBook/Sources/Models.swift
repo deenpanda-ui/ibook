@@ -21,6 +21,15 @@ struct Book: Identifiable, Codable, Equatable {
     var offset: Int = 0               //               и символ внутри главы
     var isRead: Bool = false
     var readAt: Date?
+    var bookmarks: [Bookmark]?        // необязательное поле — старые записи читаются без него
+}
+
+struct Bookmark: Identifiable, Codable, Equatable {
+    var id: UUID = UUID()
+    var chapter: Int
+    var offset: Int
+    var snippet: String
+    var createdAt: Date = Date()
 }
 
 // MARK: - Цитата
@@ -128,9 +137,14 @@ final class Store: ObservableObject {
     @discardableResult
     func importBook(from url: URL) -> Book? {
         let ext = url.pathExtension.lowercased()
-        guard let format = BookFormat(rawValue: ext) else { return nil }
         let access = url.startAccessingSecurityScopedResource()
         defer { if access { url.stopAccessingSecurityScopedResource() } }
+        if ext == "zip" { return importZip(url) }
+        guard let format = BookFormat(rawValue: ext) else {
+            Diagnostics.log("импорт: неизвестный формат \(url.lastPathComponent)")
+            return nil
+        }
+        Diagnostics.log("импорт: \(url.lastPathComponent)")
         // та же книга уже есть — не дублировать
         if let existing = books.first(where: { $0.fileName == url.lastPathComponent }) { return existing }
         var name = url.lastPathComponent
@@ -154,6 +168,18 @@ final class Store: ObservableObject {
         return book
     }
 
+    /// Книга в ZIP (часто «книга.fb2.zip»): достаём первую книгу из архива
+    private func importZip(_ url: URL) -> Book? {
+        guard let zip = ZipArchive(url: url) else { Diagnostics.log("импорт: не удалось открыть архив"); return nil }
+        let names = zip.entries.keys.sorted()
+        guard let name = names.first(where: { $0.lowercased().hasSuffix(".fb2") }) ?? names.first(where: { $0.lowercased().hasSuffix(".epub") }),
+              let data = zip.read(name) else { Diagnostics.log("импорт: в архиве нет FB2/EPUB"); return nil }
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent((name as NSString).lastPathComponent)
+        try? data.write(to: tmp)
+        defer { try? FileManager.default.removeItem(at: tmp) }
+        return importBook(from: tmp)
+    }
+
     /// При первом запуске — книга по умолчанию (Чехов, «Размазня»)
     func addDefaultBookIfNeeded() {
         let key = "CapeBookDefaultBookAdded"
@@ -170,6 +196,26 @@ final class Store: ObservableObject {
         saveQuotes()
     }
     func deleteQuote(_ q: Quote) { quotes.removeAll { $0.id == q.id }; saveQuotes() }
+
+    // закладки
+    func toggleBookmark(bookID: UUID, chapter: Int, range: NSRange, snippet: String) -> Bool {
+        guard var b = book(bookID) else { return false }
+        var list = b.bookmarks ?? []
+        if let i = list.firstIndex(where: { $0.chapter == chapter && NSLocationInRange($0.offset, range) }) {
+            list.remove(at: i)
+            b.bookmarks = list; update(b)
+            return false
+        }
+        list.append(Bookmark(chapter: chapter, offset: range.location, snippet: snippet))
+        list.sort { ($0.chapter, $0.offset) < ($1.chapter, $1.offset) }
+        b.bookmarks = list; update(b)
+        return true
+    }
+    func deleteBookmark(bookID: UUID, _ bm: Bookmark) {
+        guard var b = book(bookID) else { return }
+        b.bookmarks?.removeAll { $0.id == bm.id }
+        update(b)
+    }
 
     // статистика
     func addSession(_ s: ReadingSession) {
