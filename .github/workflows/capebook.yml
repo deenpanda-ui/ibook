@@ -7,7 +7,12 @@ permissions:
   contents: write
 jobs:
   build:
-    runs-on: macos-15-intel
+    # три типа облачных Mac: при нехватке мощностей GitHub достаточно, чтобы освободился любой
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15-intel, macos-15, macos-26]
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
