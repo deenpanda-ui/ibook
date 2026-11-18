@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key><string>ru</string>
+	<key>CFBundleDisplayName</key><string>CapeBook</string>
+	<key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+	<key>CFBundleName</key><string>CapeBook</string>
+	<key>CFBundlePackageType</key><string>APPL</string>
+	<key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key><true/>
+	<key>UILaunchScreen</key><dict><key>UIColorName</key><string></string></dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key><true/>
+	<key>UIUserInterfaceStyle</key><string>Dark</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Literata-Regular.ttf</string>
+		<string>Literata-Italic.ttf</string>
+		<string>Literata-Bold.ttf</string>
+		<string>Literata-BoldItalic.ttf</string>
+	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key><false/>
+	<key>UIFileSharingEnabled</key><true/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key><string>EPUB</string>
+			<key>CFBundleTypeRole</key><string>Viewer</string>
+			<key>LSHandlerRank</key><string>Alternate</string>
+			<key>LSItemContentTypes</key><array><string>org.idpf.epub-container</string></array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key><string>FictionBook</string>
+			<key>CFBundleTypeRole</key><string>Viewer</string>
+			<key>LSHandlerRank</key><string>Alternate</string>
+			<key>LSItemContentTypes</key><array><string>com.kundiniste.fb2</string></array>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key><string>com.kundiniste.fb2</string>
+			<key>UTTypeDescription</key><string>FictionBook</string>
+			<key>UTTypeConformsTo</key><array><string>public.xml</string><string>public.data</string></array>
+			<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>fb2</string></array></dict>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,24 @@
+name: CapeBook
+options:
+  bundleIdPrefix: com.kundiniste
+  deploymentTarget:
+    iOS: "26.0"
+targets:
+  CapeBook:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kundiniste.capebook
+        PRODUCT_NAME: CapeBook
+        MARKETING_VERSION: "2.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: Info.plist
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: NO
+        CODE_SIGNING_ALLOWED: NO

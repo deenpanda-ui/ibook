@@ -1,0 +1,45 @@
+name: CapeBook build
+on:
+  push:
+    branches: [capebook-app]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+          xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: |
+          cd CapeBook
+          xcodegen generate
+          set -o pipefail
+          xcodebuild -project CapeBook.xcodeproj -scheme CapeBook -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build 2>&1 | tee ../build.log
+          mkdir -p Payload && cp -R build/Build/Products/Release-iphoneos/CapeBook.app Payload/
+          zip -qry ../CapeBook.ipa Payload
+      - name: Publish result to capebook-builds branch
+        if: always()
+        run: |
+          N=${GITHUB_RUN_NUMBER}
+          mkdir -p /tmp/out && cp build.log /tmp/out/build-$N.log 2>/dev/null || echo "no log" > /tmp/out/build-$N.log
+          grep -E "error:|warning: .*deprecated|BUILD (SUCCEEDED|FAILED)" build.log | head -200 > /tmp/out/errors-$N.txt || true
+          echo "${{ steps.build.outcome }}" > /tmp/out/status-$N.txt
+          if [ -f CapeBook.ipa ]; then cp CapeBook.ipa /tmp/out/CapeBook-$N.ipa; fi
+          git config user.name "capebook-ci"; git config user.email "capebook-ci@users.noreply.github.com"
+          git fetch origin capebook-builds || true
+          if git rev-parse --verify origin/capebook-builds >/dev/null 2>&1; then git checkout -B capebook-builds origin/capebook-builds; else git checkout --orphan capebook-builds; git rm -rqf . || true; fi
+          rm -f CapeBook-*.ipa
+          cp /tmp/out/* .
+          git add -A . && git commit -qm "build $N: ${{ steps.build.outcome }}" && git push -q origin capebook-builds

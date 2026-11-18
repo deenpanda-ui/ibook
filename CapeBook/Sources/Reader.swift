@@ -1,0 +1,395 @@
+import UIKit
+import SwiftUI
+import CoreMotion
+
+// MARK: - Одна страница
+
+final class PageViewController: UIViewController {
+    let chapter: Int
+    let page: Int
+    private let pages: ChapterPages      // держит вёрстку главы, пока страница на экране
+    private let textView: UITextView
+    private let numberLabel = UILabel()
+    private let insets: UIEdgeInsets
+    private let pageSize: CGSize
+
+    init(chapter: Int, page: Int, pages: ChapterPages, insets: UIEdgeInsets, pageSize: CGSize,
+         settings: ReaderSettings, pageNumber: String, delegate: UITextViewDelegate?) {
+        self.chapter = chapter
+        self.page = page
+        self.pages = pages
+        self.insets = insets
+        self.pageSize = pageSize
+        textView = UITextView(frame: CGRect(origin: .zero, size: pageSize), textContainer: pages.containers[page])
+        super.init(nibName: nil, bundle: nil)
+        view.backgroundColor = settings.theme.background
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        textView.textContainerInset = .zero
+        textView.tintColor = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)   // зелёное выделение
+        textView.delegate = delegate
+        view.addSubview(textView)
+        numberLabel.text = pageNumber
+        numberLabel.font = Typesetter.font(size: 13, bold: false, italic: false)
+        numberLabel.textColor = settings.theme.text.withAlphaComponent(0.55)
+        numberLabel.textAlignment = .center
+        view.addSubview(numberLabel)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height)
+        numberLabel.frame = CGRect(x: 0, y: view.bounds.height - insets.bottom + 8, width: view.bounds.width, height: 18)
+    }
+}
+
+// MARK: - Читалка
+
+final class ReaderViewController: UIViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate,
+                                  UITextViewDelegate, UIGestureRecognizerDelegate {
+    private var book: Book
+    private let content: BookContent
+    private var settings = ReaderSettings.load()
+    private var pageVC: UIPageViewController!
+    private var chapters: [Int: ChapterPages] = [:]
+    private var pageCache: [String: PageViewController] = [:]
+    private var laidOutSize: CGSize = .zero
+    private var current: (chapter: Int, page: Int) = (0, 0)
+    private var chromeHidden = true
+    private let progressLabel = UILabel()
+    private let timer: ReadingTimer
+
+    init(book: Book, content: BookContent) {
+        self.book = book
+        self.content = content
+        self.timer = ReadingTimer(bookID: book.id, startProgress: book.progress)
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    // MARK: жизненный цикл
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = settings.theme.background
+        pageVC = UIPageViewController(transitionStyle: .pageCurl, navigationOrientation: .horizontal,
+                                      options: [.spineLocation: NSNumber(value: UIPageViewController.SpineLocation.min.rawValue)])
+        pageVC.dataSource = self
+        pageVC.delegate = self
+        pageVC.isDoubleSided = false
+        addChild(pageVC)
+        view.addSubview(pageVC.view)
+        pageVC.view.frame = view.bounds
+        pageVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        pageVC.didMove(toParent: self)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(centerTap(_:)))
+        tap.delegate = self
+        view.addGestureRecognizer(tap)
+
+        title = book.title
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"),
+                                                           style: .plain, target: self, action: #selector(close))
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(image: UIImage(systemName: "list.bullet"), style: .plain, target: self, action: #selector(showToc)),
+            UIBarButtonItem(image: UIImage(systemName: "textformat.size"), style: .plain, target: self, action: #selector(showSettings))
+        ]
+        progressLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
+        progressLabel.textColor = .secondaryLabel
+        toolbarItems = [
+            UIBarButtonItem(image: UIImage(systemName: "textformat.size.smaller"), style: .plain, target: self, action: #selector(smaller)),
+            UIBarButtonItem(image: UIImage(systemName: "textformat.size.larger"), style: .plain, target: self, action: #selector(larger)),
+            UIBarButtonItem(systemItem: .flexibleSpace),
+            UIBarButtonItem(customView: progressLabel),
+            UIBarButtonItem(systemItem: .flexibleSpace),
+            UIBarButtonItem(image: UIImage(systemName: "circle.lefthalf.filled"), menu: themeMenu())
+        ]
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.setToolbarHidden(true, animated: false)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(appBackground), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appForeground), name: UIApplication.didBecomeActiveNotification, object: nil)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        timer.start()
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        timer.stop(progress: book.progress)
+        savePosition()
+    }
+    @objc private func appBackground() { timer.pause(progress: book.progress); savePosition() }
+    @objc private func appForeground() { timer.resume() }
+
+    override var prefersStatusBarHidden: Bool { chromeHidden }
+    override var preferredStatusBarStyle: UIStatusBarStyle { settings.theme.isDark ? .lightContent : .darkContent }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let size = view.bounds.size
+        guard size.width > 0, size != laidOutSize else { return }
+        let firstLayout = laidOutSize == .zero
+        laidOutSize = size
+        let offset = firstLayout ? book.offset : currentOffset()
+        let chapter = firstLayout ? min(max(0, book.chapter), max(0, content.chapterCount - 1)) : current.chapter
+        relayout(goTo: chapter, offset: offset)
+    }
+
+    // MARK: вёрстка
+    private var insets: UIEdgeInsets {
+        let safe = view.window?.safeAreaInsets ?? view.safeAreaInsets
+        return UIEdgeInsets(top: max(safe.top, 20) + settings.topInset, left: 26, bottom: max(safe.bottom, 12) + 30, right: 26)
+    }
+    private var pageSize: CGSize {
+        let i = insets
+        return CGSize(width: max(100, view.bounds.width - i.left - i.right), height: max(100, view.bounds.height - i.top - i.bottom))
+    }
+    private func pages(_ chapter: Int) -> ChapterPages {
+        if let p = chapters[chapter] { return p }
+        let text = Typesetter.build(content.blocks(chapter: chapter), settings: settings)
+        let p = ChapterPages(text: text, pageSize: pageSize)
+        chapters[chapter] = p
+        // не держать в памяти далёкие главы
+        for k in chapters.keys where abs(k - chapter) > 2 {
+            chapters[k] = nil
+            pageCache = pageCache.filter { !$0.key.hasPrefix("\(k)-") }
+        }
+        return p
+    }
+    private func pageController(_ chapter: Int, _ page: Int) -> PageViewController {
+        let key = "\(chapter)-\(page)"
+        if let vc = pageCache[key] { return vc }
+        let p = pages(chapter)
+        let vc = PageViewController(chapter: chapter, page: page, pages: p, insets: insets, pageSize: pageSize,
+                                    settings: settings, pageNumber: "\(page + 1) / \(p.count)", delegate: self)
+        pageCache[key] = vc
+        return vc
+    }
+    private func relayout(goTo chapter: Int, offset: Int) {
+        chapters = [:]
+        pageCache = [:]
+        view.backgroundColor = settings.theme.background
+        guard content.chapterCount > 0 else { return }
+        let c = min(max(0, chapter), content.chapterCount - 1)
+        let p = pages(c).page(containing: offset)
+        show(c, p, animated: false, forward: true)
+    }
+    private func show(_ chapter: Int, _ page: Int, animated: Bool, forward: Bool) {
+        let vc = pageController(chapter, page)
+        pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: animated)
+        current = (chapter, page)
+        pageChanged()
+    }
+    private func currentOffset() -> Int {
+        guard let p = chapters[current.chapter], current.page < p.ranges.count else { return book.offset }
+        return p.ranges[current.page].location
+    }
+
+    // MARK: позиция и прогресс
+    private func pageChanged() {
+        let p = pages(current.chapter)
+        let chapterFraction = Double(current.page + 1) / Double(max(1, p.count))
+        let total = Double(max(1, content.chapterCount))
+        var progress = (Double(current.chapter) + chapterFraction) / total
+        if current.chapter == content.chapterCount - 1 && current.page == p.count - 1 { progress = 1 }
+        book.progress = min(1, max(0, progress))
+        book.chapter = current.chapter
+        book.offset = currentOffset()
+        progressLabel.text = "\(Int((book.progress * 100).rounded())) %"
+        progressLabel.sizeToFit()
+        timer.activity(pageTurn: true)
+    }
+    private func savePosition() {
+        book.lastOpenedAt = Date()
+        Store.shared.update(book)
+    }
+
+    // MARK: перелистывание
+    func pageViewController(_ pvc: UIPageViewController, viewControllerAfter vc: UIViewController) -> UIViewController? {
+        guard let v = vc as? PageViewController else { return nil }
+        let p = pages(v.chapter)
+        if v.page + 1 < p.count { return pageController(v.chapter, v.page + 1) }
+        if v.chapter + 1 < content.chapterCount { return pageController(v.chapter + 1, 0) }
+        return nil
+    }
+    func pageViewController(_ pvc: UIPageViewController, viewControllerBefore vc: UIViewController) -> UIViewController? {
+        guard let v = vc as? PageViewController else { return nil }
+        if v.page > 0 { return pageController(v.chapter, v.page - 1) }
+        if v.chapter > 0 { let prev = pages(v.chapter - 1); return pageController(v.chapter - 1, prev.count - 1) }
+        return nil
+    }
+    func pageViewController(_ pvc: UIPageViewController, didFinishAnimating finished: Bool,
+                            previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        guard completed, let v = pvc.viewControllers?.first as? PageViewController else { return }
+        current = (v.chapter, v.page)
+        pageChanged()
+        savePosition()
+    }
+
+    // MARK: касания
+    func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        timer.activity(pageTurn: false)
+        let x = touch.location(in: view).x
+        return x > view.bounds.width * 0.3 && x < view.bounds.width * 0.7
+    }
+    func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
+    @objc private func centerTap(_ g: UITapGestureRecognizer) {
+        chromeHidden.toggle()
+        navigationController?.setNavigationBarHidden(chromeHidden, animated: true)
+        navigationController?.setToolbarHidden(chromeHidden, animated: true)
+        UIView.animate(withDuration: 0.25) { self.setNeedsStatusBarAppearanceUpdate() }
+    }
+
+    // MARK: меню выделения — «В цитаты» и «Поделиться»
+    func textView(_ textView: UITextView, editMenuForTextIn range: NSRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
+        let s = textView.textStorage.string as NSString
+        guard range.location != NSNotFound, NSMaxRange(range) <= s.length else { return nil }
+        let text = s.substring(with: range)
+        timer.activity(pageTurn: false)
+        let quote = UIAction(title: "В цитаты", image: UIImage(systemName: "quote.opening")) { [weak self] _ in
+            guard let self else { return }
+            Store.shared.addQuote(text, book: self.book)
+            textView.selectedRange = NSRange(location: 0, length: 0)
+        }
+        let share = UIAction(title: "Поделиться", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+            guard let self else { return }
+            let q = Quote(bookID: self.book.id, bookTitle: self.book.title, bookAuthor: self.book.author, text: text)
+            self.share([q.signed], from: textView)
+        }
+        return UIMenu(children: [quote, share])
+    }
+    private func share(_ items: [Any], from source: UIView) {
+        let avc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        avc.popoverPresentationController?.sourceView = source
+        present(avc, animated: true)
+    }
+
+    // MARK: кнопки
+    @objc private func close() { dismiss(animated: true) }
+    @objc private func smaller() { changeFont(-1) }
+    @objc private func larger() { changeFont(1) }
+    private func changeFont(_ d: CGFloat) {
+        let off = currentOffset()
+        settings.fontSize = min(34, max(14, settings.fontSize + d))
+        settings.save()
+        relayout(goTo: current.chapter, offset: off)
+    }
+    private func themeMenu() -> UIMenu {
+        UIMenu(children: PaperTheme.allCases.map { t in
+            UIAction(title: t.name, state: t == settings.theme ? .on : .off) { [weak self] _ in
+                guard let self else { return }
+                let off = self.currentOffset()
+                self.settings.theme = t
+                self.settings.save()
+                self.relayout(goTo: self.current.chapter, offset: off)
+                self.setNeedsStatusBarAppearanceUpdate()
+                if let items = self.toolbarItems, let last = items.last { last.menu = self.themeMenu() }
+            }
+        })
+    }
+    @objc private func showSettings() {
+        let off = currentOffset()
+        let host = UIHostingController(rootView: ReaderSettingsView(settings: settings) { [weak self] new in
+            guard let self else { return }
+            self.settings = new
+            new.save()
+            self.relayout(goTo: self.current.chapter, offset: off)
+        })
+        if let sheet = host.sheetPresentationController { sheet.detents = [.medium()]; sheet.prefersGrabberVisible = true }
+        present(host, animated: true)
+    }
+    @objc private func showToc() {
+        let entries = content.toc.isEmpty
+            ? (0..<content.chapterCount).map { TocEntry(title: "Глава \($0 + 1)", chapter: $0, anchor: nil, block: nil, level: 1) }
+            : content.toc
+        let host = UIHostingController(rootView: TocView(entries: entries, currentChapter: current.chapter) { [weak self] e in
+            self?.dismiss(animated: true)
+            self?.go(to: e)
+        })
+        if let sheet = host.sheetPresentationController { sheet.detents = [.medium(), .large()]; sheet.prefersGrabberVisible = true }
+        present(host, animated: true)
+    }
+    private func go(to e: TocEntry) {
+        let p = pages(e.chapter)
+        var offset = 0
+        if let a = e.anchor, let o = p.text.anchors[a] { offset = o }
+        else if let b = e.block, b < p.text.blockStarts.count { offset = p.text.blockStarts[b] }
+        show(e.chapter, p.page(containing: offset), animated: true, forward: e.chapter >= current.chapter)
+        savePosition()
+    }
+}
+
+// MARK: - Таймер чтения: время идёт, только пока открыт текст и есть активность (20 с)
+
+final class ReadingTimer {
+    private let bookID: UUID
+    private var startProgress: Double
+    private var seconds = 0
+    private var pages = 0
+    private var sessionStart = Date()
+    private var lastActivity = Date()
+    private var lastTick = Date()
+    private var tick: Timer?
+    private let motion = CMMotionManager()
+    static let idleLimit: TimeInterval = 20
+
+    init(bookID: UUID, startProgress: Double) { self.bookID = bookID; self.startProgress = startProgress }
+
+    func start() {
+        sessionStart = Date(); lastActivity = Date(); lastTick = Date(); seconds = 0; pages = 0
+        if motion.isDeviceMotionAvailable {
+            motion.deviceMotionUpdateInterval = 0.25
+            motion.startDeviceMotionUpdates()
+        }
+        tick?.invalidate()
+        tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.beat() }
+    }
+    func resume() { if tick == nil { start() } }
+    func activity(pageTurn: Bool) {
+        lastActivity = Date()
+        if pageTurn { pages += 1 }
+    }
+    private func beat() {
+        let now = Date()
+        if let m = motion.deviceMotion {
+            let r = m.rotationRate, a = m.userAcceleration
+            if r.x * r.x + r.y * r.y + r.z * r.z > 0.03 * 0.03 || a.x * a.x + a.y * a.y + a.z * a.z > 0.02 * 0.02 { lastActivity = now }
+        }
+        let d = now.timeIntervalSince(lastTick)
+        lastTick = now
+        if d > 0, d <= 5, now.timeIntervalSince(lastActivity) <= ReadingTimer.idleLimit { seconds += Int(d.rounded()) }
+    }
+    func pause(progress: Double) { flush(progress: progress); tick?.invalidate(); tick = nil; motion.stopDeviceMotionUpdates() }
+    func stop(progress: Double) { pause(progress: progress) }
+    private func flush(progress: Double) {
+        if seconds >= 5 {
+            Store.shared.addSession(ReadingSession(bookID: bookID, start: sessionStart, seconds: seconds, pages: pages,
+                                                   progressFrom: startProgress, progressTo: progress))
+        }
+        startProgress = progress
+        seconds = 0; pages = 0; sessionStart = Date()
+    }
+}
+
+// MARK: - SwiftUI-обёртка
+
+struct ReaderScreen: UIViewControllerRepresentable {
+    let book: Book
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let url = Store.shared.fileURL(book)
+        let root: UIViewController
+        if let content = BookParser.open(url: url, format: book.format) {
+            root = ReaderViewController(book: book, content: content)
+        } else {
+            root = UIHostingController(rootView: Text("Не удалось открыть книгу").foregroundStyle(.secondary))
+        }
+        let nav = UINavigationController(rootViewController: root)
+        nav.modalPresentationStyle = .fullScreen
+        return nav
+    }
+    func updateUIViewController(_ vc: UINavigationController, context: Context) {}
+}
