@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 /// День в статистике начинается в 5:00 — чтение после полуночи относится к предыдущему дню
 private func readingDay(_ d: Date) -> Date {
@@ -14,6 +13,7 @@ private func fmt(_ sec: Int) -> String {
 struct StatsView: View {
     @EnvironmentObject var store: Store
     @State private var confirmReset = false
+    @State private var openedBook: UUID?
 
     private var today: Date { readingDay(Date()) }
     private var todaySessions: [ReadingSession] { store.sessions.filter { readingDay($0.start) == today } }
@@ -33,10 +33,11 @@ struct StatsView: View {
         }
         return n
     }
-    private var last14: [(Date, Int)] {
-        (0..<14).reversed().compactMap { i in
-            Calendar.current.date(byAdding: .day, value: -i, to: today).map { ($0, byDay[$0] ?? 0) }
-        }
+    /// Среднее время в день — по дням, когда вы читали
+    private var averagePerDay: Int {
+        let days = byDay.values.filter { $0 > 0 }.count
+        guard days > 0 else { return 0 }
+        return byDay.values.reduce(0, +) / days
     }
 
     var body: some View {
@@ -50,9 +51,8 @@ struct StatsView: View {
                     }
                     HStack(spacing: 12) {
                         tile("\(store.books.filter { $0.isRead }.count)", "книг прочитано")
-                        tile("\(store.sessions.reduce(0) { $0 + $1.pages })", "страниц")
+                        tile(fmt(averagePerDay), "в среднем в день")
                     }
-                    chart
                     finished
                     Button(role: .destructive) { confirmReset = true } label: {
                         Text("Сбросить статистику").frame(maxWidth: .infinity).padding(.vertical, 6)
@@ -116,26 +116,55 @@ struct StatsView: View {
         .glassEffect(.regular.tint(.green.opacity(0.15)), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
+    /// Как читалась книга: период, дни чтения, общее время
+    private func bookDetails(_ b: Book) -> some View {
+        let mine = store.sessions.filter { $0.bookID == b.id }
+        let total = mine.reduce(0) { $0 + $1.seconds }
+        let days = Set(mine.map { readingDay($0.start) }).count
+        let first = mine.map(\.start).min()
+        let last = b.readAt ?? mine.map(\.start).max()
+        let dateFmt = Date.FormatStyle.dateTime.day().month().year()
+        return VStack(alignment: .leading, spacing: 6) {
+            if mine.isEmpty {
+                Text("Нет записей о чтении этой книги — возможно, она была прочитана до установки или статистику сбрасывали.")
+                    .foregroundStyle(.secondary)
+            } else {
+                if let first, let last {
+                    let span = (Calendar.current.dateComponents([.day], from: readingDay(first), to: readingDay(last)).day ?? 0) + 1
+                    row("Период", "\(first.formatted(dateFmt)) — \(last.formatted(dateFmt))")
+                    row("Заняло", "\(span) \(dayWord(span))")
+                }
+                row("Дней чтения", "\(days)")
+                row("Время за чтением", fmt(total))
+                if days > 0 { row("В среднем в день", fmt(total / days)) }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.10), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+    private func row(_ title: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).foregroundStyle(.secondary)
+            Spacer()
+            Text(value).fontWeight(.semibold).multilineTextAlignment(.trailing)
+        }
+    }
+    private func dayWord(_ n: Int) -> String {
+        let a = n % 100, b = n % 10
+        if a >= 11 && a <= 14 { return "дней" }
+        if b == 1 { return "день" }
+        if b >= 2 && b <= 4 { return "дня" }
+        return "дней"
+    }
+
     private func tile(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(value).font(.title2.weight(.bold))
             Text(label).font(.footnote).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-
-    private var chart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Последние 14 дней").font(.headline)
-            Chart(last14, id: \.0) { item in
-                BarMark(x: .value("День", item.0, unit: .day), y: .value("Минуты", Double(item.1) / 60))
-                    .foregroundStyle(.green.gradient)
-                    .cornerRadius(4)
-            }
-            .frame(height: 160)
-        }
         .padding(16)
         .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
@@ -148,10 +177,22 @@ struct StatsView: View {
                 Text("Отметьте книгу прочитанной в меню книги в библиотеке.").font(.subheadline).foregroundStyle(.secondary)
             }
             ForEach(done) { b in
-                HStack {
-                    Text(b.title).lineLimit(1)
-                    Spacer()
-                    if let d = b.readAt { Text(d.formatted(.dateTime.day().month())).foregroundStyle(.secondary) }
+                VStack(alignment: .leading, spacing: 8) {
+                    Button {
+                        withAnimation(.snappy) { openedBook = openedBook == b.id ? nil : b.id }
+                    } label: {
+                        HStack {
+                            Text(b.title).lineLimit(1).foregroundStyle(.primary)
+                            Spacer()
+                            if let d = b.readAt { Text(d.formatted(.dateTime.day().month())).foregroundStyle(.secondary) }
+                            Image(systemName: "chevron.down")
+                                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(openedBook == b.id ? 180 : 0))
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if openedBook == b.id { bookDetails(b) }
                 }
                 .font(.subheadline)
             }
