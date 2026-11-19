@@ -22,6 +22,10 @@ struct TocView: View {
                 if mode == 0 { contents } else if mode == 1 { bookmarks } else { progressTab }
             }
             .listStyle(.insetGrouped)
+            // одинаковый плотный фон во всех трёх вкладках — текст хорошо читается
+            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
+            .environment(\.defaultMinListRowHeight, 48)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Picker("", selection: $mode) {
@@ -108,6 +112,7 @@ struct TocView: View {
                         Text(bm.createdAt.formatted(.dateTime.day().month().hour().minute())).font(.caption).foregroundStyle(.secondary)
                     }
                 }
+                .listRowBackground(Color(.secondarySystemGroupedBackground))
                 .swipeActions { Button(role: .destructive) { store.deleteBookmark(bookID: bookID, bm) } label: { Label("Удалить", systemImage: "trash") } }
             }
             }
@@ -136,6 +141,7 @@ struct TocView: View {
                         }
                     }
                     .id(e.id)
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
                 } } }
                 .onAppear {
                     if let e = entries.last(where: { $0.chapter <= currentChapter }) { proxy.scrollTo(e.id, anchor: .center) }
