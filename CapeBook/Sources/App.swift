@@ -18,10 +18,10 @@ struct CapeBookApp: App {
 }
 
 struct RootView: View {
-    @State private var tab = 0
+    @EnvironmentObject var store: Store
 
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: $store.tab) {
             Tab("Библиотека", systemImage: "house.fill", value: 0) { LibraryView() }
             Tab("Цитаты", systemImage: "quote.opening", value: 1) { QuotesView() }
             Tab("Статистика", systemImage: "books.vertical.fill", value: 2) { StatsView() }

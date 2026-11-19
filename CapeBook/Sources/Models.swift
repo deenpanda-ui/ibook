@@ -92,6 +92,9 @@ final class Store: ObservableObject {
     @Published var books: [Book] = []
     @Published var quotes: [Quote] = []
     @Published var sessions: [ReadingSession] = []
+    // навигация: открытая вкладка и фильтр цитат (для «Цитаты из книги»)
+    @Published var tab = 0
+    @Published var quotesFilter: UUID?
 
     private let booksURL = Paths.support.appendingPathComponent("books.json")
     private let quotesURL = Paths.support.appendingPathComponent("quotes.json")

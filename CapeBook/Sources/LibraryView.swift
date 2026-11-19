@@ -63,6 +63,10 @@ struct LibraryView: View {
     private func menu(_ book: Book) -> some View {
         Menu {
             Button { open(book) } label: { Label("Читать", systemImage: "book") }
+            Button {
+                store.quotesFilter = book.id
+                store.tab = 1
+            } label: { Label("Цитаты из книги", systemImage: "quote.opening") }
             ShareLink(item: store.fileURL(book)) { Label("Поделиться книгой", systemImage: "square.and.arrow.up") }
             Button {
                 var b = book

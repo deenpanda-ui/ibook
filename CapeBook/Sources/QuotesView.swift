@@ -3,7 +3,8 @@ import SwiftUI
 struct QuotesView: View {
     @EnvironmentObject var store: Store
     @State private var query = ""
-    @State private var bookFilter: UUID?
+
+    private var bookFilter: UUID? { store.quotesFilter }
 
     private var filtered: [Quote] {
         store.quotes.filter { q in
@@ -24,12 +25,12 @@ struct QuotesView: View {
     var body: some View {
         NavigationStack {
             List {
-                if booksWithQuotes.count > 1 {
+                if booksWithQuotes.count > 1 || bookFilter != nil {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            chip("Все", count: store.quotes.count, active: bookFilter == nil) { bookFilter = nil }
+                            chip("Все", count: store.quotes.count, active: bookFilter == nil) { store.quotesFilter = nil }
                             ForEach(booksWithQuotes, id: \.0) { item in
-                                chip(item.1, count: item.2, active: bookFilter == item.0) { bookFilter = item.0 }
+                                chip(item.1, count: item.2, active: bookFilter == item.0) { store.quotesFilter = item.0 }
                             }
                         }
                     }
@@ -59,6 +60,10 @@ struct QuotesView: View {
                 }
             }
             .overlay {
+                if bookFilter != nil && filtered.isEmpty && !store.quotes.isEmpty {
+                    ContentUnavailableView("В этой книге пока нет цитат", systemImage: "quote.opening",
+                                           description: Text("Выделите текст в книге и нажмите «В цитаты»."))
+                }
                 if store.quotes.isEmpty {
                     ContentUnavailableView("Пока нет цитат", systemImage: "quote.opening",
                                            description: Text("Выделите текст в книге и нажмите «В цитаты»."))
