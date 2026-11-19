@@ -3,31 +3,65 @@ import UIKit
 // MARK: - Настройки чтения
 
 enum PaperTheme: Int, CaseIterable {
-    case paper, sepia, gray, night
+    // номера совпадают с прежними темами, чтобы сохранённый выбор не сбился
+    case light = 0, cream = 1, olive = 2, night = 3
 
+    var name: String {
+        switch self {
+        case .light: return "Светлая бумага"
+        case .cream: return "Кремовая бумага"
+        case .olive: return "Оливковая"
+        case .night: return "Ночная"
+        }
+    }
+    var imageName: String {
+        switch self {
+        case .light: return "paper_light"
+        case .cream: return "paper_cream"
+        case .olive: return "paper_olive"
+        case .night: return "paper_night"
+        }
+    }
+    /// фон-картинка (ваши обои) и средний цвет на случай, если картинки нет
+    var image: UIImage? { UIImage(named: imageName + ".jpg") ?? UIImage(named: imageName) }
     var background: UIColor {
         switch self {
-        case .paper: return UIColor(red: 0.97, green: 0.95, blue: 0.90, alpha: 1)
-        case .sepia: return UIColor(red: 0.93, green: 0.87, blue: 0.75, alpha: 1)
-        case .gray: return UIColor(red: 0.42, green: 0.43, blue: 0.37, alpha: 1)
-        case .night: return UIColor(red: 0.07, green: 0.07, blue: 0.08, alpha: 1)
+        case .light: return UIColor(red: 219/255, green: 208/255, blue: 195/255, alpha: 1)
+        case .cream: return UIColor(red: 247/255, green: 229/255, blue: 203/255, alpha: 1)
+        case .olive: return UIColor(red: 103/255, green: 106/255, blue: 81/255, alpha: 1)
+        case .night: return UIColor(red: 36/255, green: 36/255, blue: 36/255, alpha: 1)
         }
     }
     var text: UIColor {
         switch self {
-        case .paper: return UIColor(red: 0.13, green: 0.12, blue: 0.11, alpha: 1)
-        case .sepia: return UIColor(red: 0.24, green: 0.17, blue: 0.10, alpha: 1)
-        case .gray: return UIColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1)
+        case .light: return UIColor(red: 0.12, green: 0.11, blue: 0.10, alpha: 1)
+        case .cream: return UIColor(red: 0.20, green: 0.15, blue: 0.10, alpha: 1)
+        case .olive: return UIColor(red: 0.05, green: 0.06, blue: 0.04, alpha: 1)
         case .night: return UIColor(red: 0.80, green: 0.78, blue: 0.74, alpha: 1)
         }
     }
     var isDark: Bool { self == .night }
-    var name: String {
-        switch self { case .paper: return "Бумага"; case .sepia: return "Сепия"; case .gray: return "Олива"; case .night: return "Ночь" }
-    }
+}
+
+/// Шрифты для чтения (как в прежнем приложении + Literata)
+enum ReaderFonts {
+    static let all: [(family: String, title: String)] = [
+        ("Literata", "Literata"),
+        ("Georgia", "Georgia"),
+        ("Times New Roman", "Times New Roman"),
+        ("Baskerville", "Baskerville"),
+        ("Palatino", "Palatino"),
+        ("Charter", "Charter"),
+        ("Iowan Old Style", "Iowan Old Style"),
+        ("Verdana", "Verdana"),
+        ("Trebuchet MS", "Trebuchet"),
+        ("Arial", "Arial"),
+        ("Helvetica Neue", "Helvetica")
+    ]
 }
 
 struct ReaderSettings: Equatable {
+    var fontFamily: String
     var fontSize: CGFloat
     var theme: PaperTheme
     var lineSpacing: CGFloat
@@ -37,14 +71,16 @@ struct ReaderSettings: Equatable {
     static func load() -> ReaderSettings {
         let d = UserDefaults.standard
         return ReaderSettings(
+            fontFamily: d.string(forKey: "rs.fontFamily") ?? "Literata",
             fontSize: d.object(forKey: "rs.fontSize") as? CGFloat ?? 20,
-            theme: PaperTheme(rawValue: d.integer(forKey: "rs.theme")) ?? .paper,
+            theme: PaperTheme(rawValue: d.integer(forKey: "rs.theme")) ?? .light,
             lineSpacing: d.object(forKey: "rs.lineSpacing") as? CGFloat ?? 4,
             topInset: d.object(forKey: "rs.topInset") as? CGFloat ?? 20,
             lockOrientation: d.bool(forKey: "rs.lockOrientation"))
     }
     func save() {
         let d = UserDefaults.standard
+        d.set(fontFamily, forKey: "rs.fontFamily")
         d.set(fontSize, forKey: "rs.fontSize")
         d.set(theme.rawValue, forKey: "rs.theme")
         d.set(lineSpacing, forKey: "rs.lineSpacing")
@@ -62,24 +98,30 @@ struct ChapterText {
 }
 
 enum Typesetter {
+    static var family = "Literata"
+
     static func font(size: CGFloat, bold: Bool, italic: Bool) -> UIFont {
-        let name: String
-        switch (bold, italic) {
-        case (true, true): name = "Literata-BoldItalic"
-        case (true, false): name = "Literata-Bold"
-        case (false, true): name = "Literata-Italic"
-        default: name = "Literata-Regular"
+        if family == "Literata" {
+            let name: String
+            switch (bold, italic) {
+            case (true, true): name = "Literata-BoldItalic"
+            case (true, false): name = "Literata-Bold"
+            case (false, true): name = "Literata-Italic"
+            default: name = "Literata-Regular"
+            }
+            if let f = UIFont(name: name, size: size) { return f }
         }
-        if let f = UIFont(name: name, size: size) { return f }
         var traits: UIFontDescriptor.SymbolicTraits = []
         if bold { traits.insert(.traitBold) }
         if italic { traits.insert(.traitItalic) }
-        let base = UIFont(name: "Georgia", size: size) ?? .systemFont(ofSize: size)
+        let desc = UIFontDescriptor(fontAttributes: [.family: family == "Literata" ? "Georgia" : family])
+        let base = UIFont(descriptor: desc, size: size)
         if let d = base.fontDescriptor.withSymbolicTraits(traits) { return UIFont(descriptor: d, size: size) }
         return base
     }
 
     static func build(_ blocks: [Block], settings s: ReaderSettings, pageSize: CGSize) -> ChapterText {
+        family = s.fontFamily
         let out = NSMutableAttributedString()
         var starts: [Int] = []
         var anchors: [String: Int] = [:]

@@ -23,6 +23,13 @@ final class PageViewController: UIViewController {
         textView = UITextView(frame: CGRect(origin: .zero, size: pageSize), textContainer: pages.containers[page])
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = settings.theme.background
+        if let img = settings.theme.image {
+            let bg = UIImageView(image: img)
+            bg.contentMode = .scaleToFill
+            bg.frame = view.bounds
+            bg.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.addSubview(bg)
+        }
         textView.isEditable = false
         textView.isSelectable = true
         textView.isScrollEnabled = false
@@ -61,6 +68,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private var chromeHidden = true
     private let progressLabel = UILabel()
     private var bookmarkItem = UIBarButtonItem()
+    private let slider = UISlider()
     private let timer: ReadingTimer
 
     init(book: Book, content: BookContent) {
@@ -101,14 +109,12 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         ]
         progressLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         progressLabel.textColor = .secondaryLabel
-        toolbarItems = [
-            UIBarButtonItem(image: UIImage(systemName: "textformat.size.smaller"), style: .plain, target: self, action: #selector(smaller)),
-            UIBarButtonItem(image: UIImage(systemName: "textformat.size.larger"), style: .plain, target: self, action: #selector(larger)),
-            UIBarButtonItem(systemItem: .flexibleSpace),
-            UIBarButtonItem(customView: progressLabel),
-            UIBarButtonItem(systemItem: .flexibleSpace),
-            UIBarButtonItem(image: UIImage(systemName: "circle.lefthalf.filled"), menu: themeMenu())
-        ]
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.minimumTrackTintColor = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)
+        slider.addTarget(self, action: #selector(sliderMoved), for: .valueChanged)
+        slider.addTarget(self, action: #selector(sliderReleased), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        toolbarItems = [UIBarButtonItem(customView: slider), UIBarButtonItem(customView: progressLabel)]
         navigationController?.setNavigationBarHidden(true, animated: false)
         navigationController?.setToolbarHidden(true, animated: false)
 
@@ -149,6 +155,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        slider.frame = CGRect(x: 0, y: 0, width: max(120, view.bounds.width - 140), height: 34)
         let size = view.bounds.size
         guard size.width > 0, size != laidOutSize else { return }
         let firstLayout = laidOutSize == .zero
@@ -220,6 +227,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         book.offset = currentOffset()
         progressLabel.text = "\(Int((book.progress * 100).rounded())) %"
         progressLabel.sizeToFit()
+        if !slider.isTracking { slider.value = Float(book.progress) }
         timer.activity(pageTurn: true)
         updateBookmarkIcon()
     }
@@ -313,6 +321,26 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         present(avc, animated: true)
     }
 
+    // MARK: шкала книги — перемотка в любое место
+    private func target(for v: Float) -> (chapter: Int, page: Int) {
+        let n = max(1, content.chapterCount)
+        let x = Double(min(max(v, 0), 1)) * Double(n)
+        let c = min(n - 1, Int(x))
+        let p = pages(c)
+        let page = min(p.count - 1, max(0, Int((x - Double(c)) * Double(p.count))))
+        return (c, page)
+    }
+    @objc private func sliderMoved() {
+        progressLabel.text = "\(Int((slider.value * 100).rounded())) %"
+        progressLabel.sizeToFit()
+        timer.activity(pageTurn: false)
+    }
+    @objc private func sliderReleased() {
+        let t = target(for: slider.value)
+        show(t.chapter, t.page, animated: false, forward: true)
+        savePosition()
+    }
+
     // MARK: кнопки
     @objc private func close() { dismiss(animated: true) }
     @objc private func smaller() { changeFont(-1) }
@@ -332,7 +360,6 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                 self.settings.save()
                 self.relayout(goTo: self.current.chapter, offset: off)
                 self.setNeedsStatusBarAppearanceUpdate()
-                if let items = self.toolbarItems, let last = items.last { last.menu = self.themeMenu() }
             }
         })
     }
@@ -341,6 +368,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let host = UIHostingController(rootView: ReaderSettingsView(settings: settings) { [weak self] new in
             guard let self else { return }
             let needsLayout = new.fontSize != self.settings.fontSize || new.lineSpacing != self.settings.lineSpacing
+                || new.fontFamily != self.settings.fontFamily
                 || new.theme != self.settings.theme || new.topInset != self.settings.topInset
             self.settings = new
             new.save()

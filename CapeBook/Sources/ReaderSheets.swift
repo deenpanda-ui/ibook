@@ -78,12 +78,42 @@ struct ReaderSettingsView: View {
         NavigationStack {
             Form {
                 Section("Шрифт") {
+                    Picker("Шрифт", selection: $settings.fontFamily) {
+                        ForEach(ReaderFonts.all.indices, id: \.self) { i in
+                            let f = ReaderFonts.all[i]
+                            Text(f.title).font(.custom(f.family == "Literata" ? "Literata-Regular" : f.family, size: 17)).tag(f.family)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
                     Stepper("Размер: \(Int(settings.fontSize))", value: $settings.fontSize, in: 14...34, step: 1)
                     Stepper("Межстрочный: \(Int(settings.lineSpacing))", value: $settings.lineSpacing, in: 0...14, step: 1)
                 }
                 Section("Страница") {
-                    Picker("Фон", selection: $settings.theme) {
-                        ForEach(PaperTheme.allCases, id: \.self) { Text($0.name).tag($0) }
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Фон")
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(PaperTheme.allCases, id: \.self) { t in
+                                    Button { settings.theme = t } label: {
+                                        VStack(spacing: 6) {
+                                            ZStack {
+                                                if let img = t.image { Image(uiImage: img).resizable().scaledToFill() }
+                                                else { Color(t.background) }
+                                                Text("Аа").font(.custom("Literata-Regular", size: 20)).foregroundStyle(Color(t.text))
+                                            }
+                                            .frame(width: 64, height: 90)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .strokeBorder(settings.theme == t ? Color.green : Color.white.opacity(0.15), lineWidth: settings.theme == t ? 3 : 1))
+                                            Text(t.name).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                                        }
+                                        .frame(width: 84)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
                     VStack(alignment: .leading) {
                         Text("Отступ текста сверху: \(Int(settings.topInset))")

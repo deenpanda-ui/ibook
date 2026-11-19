@@ -26,7 +26,7 @@ struct RootView: View {
             Tab("Цитаты", systemImage: "quote.opening", value: 1) { QuotesView() }
             Tab("Статистика", systemImage: "books.vertical.fill", value: 2) { StatsView() }
         }
-        .tint(.white)
+        .tint(Color(red: 0.43, green: 0.82, blue: 0.53))   // зелёный акцент (белый делал кнопки «невидимыми»)
     }
 }
 

@@ -49,8 +49,12 @@ struct QuotesView: View {
                         Button(role: .destructive) { withAnimation { store.deleteQuote(q) } } label: { Label("Удалить", systemImage: "trash") }
                     }
                     .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) { withAnimation { store.deleteQuote(q) } } label: { Label("Удалить", systemImage: "trash") }
-                        ShareLink(item: q.signed) { Label("Поделиться", systemImage: "square.and.arrow.up") }.tint(.green)
+                        Button(role: .destructive) { withAnimation { store.deleteQuote(q) } } label: {
+                            Label("Удалить", systemImage: "trash").labelStyle(.iconOnly)
+                        }
+                        .tint(.red)
+                        ShareLink(item: q.signed) { Label("Поделиться", systemImage: "square.and.arrow.up").labelStyle(.iconOnly) }
+                            .tint(.green)
                     }
                 }
             }
