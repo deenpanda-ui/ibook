@@ -96,6 +96,7 @@ final class PageViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height + 6)
+        textView.layoutManager.ensureLayout(for: textView.textContainer)   // вёрстка заранее, не во время загиба
         // номер страницы — у самого низа экрана, над полоской «домой»
         let safeBottom = view.window?.safeAreaInsets.bottom ?? view.safeAreaInsets.bottom
         let textBottom = insets.top + pageSize.height
@@ -309,6 +310,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     }
     private func countNext(key: String) {
         guard key == countingKey else { return }               // настройки поменялись — старый счёт не нужен
+        // считаем только в паузах: пока листаете — не мешаем анимации
+        if turning || Date().timeIntervalSince(lastTouchStart) < 1.2 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.countNext(key: key) }
+            return
+        }
         guard let c = pageCounts.firstIndex(where: { $0 == nil }) else {
             UserDefaults.standard.set(pageCounts.map { $0 ?? 0 }, forKey: key)
             refreshNumbers()
@@ -319,7 +325,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             let text = Typesetter.build(content.blocks(chapter: c), settings: settings, pageSize: pageSize)
             pageCounts[c] = ChapterPages(text: text, pageSize: pageSize).count
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { [weak self] in self?.countNext(key: key) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in self?.countNext(key: key) }
     }
     private func refreshNumbers() {
         for vc in pageCache.values {
@@ -346,6 +352,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: animated)
         current = (chapter, page)
         pageChanged()
+        preloadNeighbors()
     }
     private func currentOffset() -> Int {
         guard let p = chapters[current.chapter], current.page < p.ranges.count else { return book.offset }
@@ -421,6 +428,21 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         current = (v.chapter, v.page)
         pageChanged()
         savePosition()
+        preloadNeighbors()
+    }
+
+    /// Заранее сверстать соседние страницы, чтобы загиб начинался без задержки и рывка
+    private func preloadNeighbors() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let self, !self.turning, let cur = self.pageVC.viewControllers?.first else { return }
+            for vc in [self.pageViewController(self.pageVC, viewControllerAfter: cur),
+                       self.pageViewController(self.pageVC, viewControllerBefore: cur)] {
+                guard let vc else { continue }
+                vc.loadViewIfNeeded()
+                vc.view.frame = self.view.bounds
+                vc.view.layoutIfNeeded()
+            }
+        }
     }
 
     // MARK: касания
@@ -482,7 +504,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let forward = settings.swapTapZones ? left : !left
         // быстрые тапы подряд — страницы листаются мгновенно, без анимации
         let now = Date()
-        let rapid = now.timeIntervalSince(lastSideTap) < 0.5
+        let rapid = now.timeIntervalSince(lastSideTap) < 0.45
         lastSideTap = now
         if turning { pendingTurns += forward ? 1 : -1; return }  // тап во время анимации — запомнить и долистать сразу после
         turn(forward: forward, fast: rapid)
@@ -494,7 +516,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                                 : pageViewController(pageVC, viewControllerBefore: cur)) as? PageViewController
         else { pendingTurns = 0; return }
         turning = true
-        setCurlSpeed(fast ? 3 : 1)
+        // быстрые тапы — быстрый загиб; спокойное листание — чуть медленнее обычного, мягко и плавно
+        setCurlSpeed(fast ? 2.6 : 0.8)
         pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -505,6 +528,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                     self.turn(forward: f, fast: true)
                 } else {
                     self.setCurlSpeed(1)
+                    self.preloadNeighbors()
                 }
             }
         }
