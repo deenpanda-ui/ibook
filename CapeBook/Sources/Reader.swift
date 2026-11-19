@@ -129,6 +129,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private let timer: ReadingTimer
     private let sideTap = UITapGestureRecognizer()
     private var turning = false
+    private var pendingTurns = 0
+    private var lastSideTap = Date.distantPast
     private var sideTouchStart = Date()
     private var centerTouchStart = Date()
     private var panTouchStart = Date()
@@ -476,17 +478,42 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         guard Date().timeIntervalSince(sideTouchStart) < 0.35 else { return }
         if hasSelection && !selectionMadeBy(touchStart: sideTouchStart) { clearSelection(); return }   // тап при выделении — снять его
         clearSelection()
-        guard !turning, let cur = pageVC.viewControllers?.first else { return }
         let left = g.location(in: view).x < view.bounds.width / 2
         let forward = settings.swapTapZones ? left : !left
-        let next = forward ? pageViewController(pageVC, viewControllerAfter: cur) : pageViewController(pageVC, viewControllerBefore: cur)
-        guard let vc = next as? PageViewController else { return }
-        turning = true
-        pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
-            self?.turning = false
+        // быстрые тапы подряд — страницы листаются мгновенно, без анимации
+        let now = Date()
+        let rapid = now.timeIntervalSince(lastSideTap) < 0.5
+        lastSideTap = now
+        if turning { pendingTurns += forward ? 1 : -1; return }  // тап во время анимации — запомнить и долистать сразу после
+        turn(forward: forward, animated: !rapid)
+    }
+    private func turn(forward: Bool, animated: Bool) {
+        guard let cur = pageVC.viewControllers?.first,
+              let vc = (forward ? pageViewController(pageVC, viewControllerAfter: cur)
+                                : pageViewController(pageVC, viewControllerBefore: cur)) as? PageViewController
+        else { pendingTurns = 0; return }
+        if animated {
+            turning = true
+            pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
+                DispatchQueue.main.async {
+                    self?.turning = false
+                    self?.flushPendingTurns()
+                }
+            }
+        } else {
+            pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: false)
         }
         current = (vc.chapter, vc.page)
         pageChanged()
+    }
+    private func flushPendingTurns() {
+        var guardCount = 0
+        while pendingTurns != 0, guardCount < 200 {
+            guardCount += 1
+            let f = pendingTurns > 0
+            pendingTurns += f ? -1 : 1
+            turn(forward: f, animated: false)
+        }
     }
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
         g === sideTap || g === centerTapRecognizer              // свои тапы не мешают выделению; свайп — как обычно
