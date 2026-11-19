@@ -77,7 +77,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private var backButton = UIButton()
     private var tocButton = UIButton()
     private var settingsButton = UIButton()
-    private var chromeButtons: [UIButton] { [backButton, tocButton, settingsButton] }
+    private var chromeButtons: [UIButton] { [backButton, tocButton] }   // «Аа» — внутри меню оглавления
     // общий счёт страниц по всей книге: число страниц в каждой главе (считается постепенно)
     private var pageCounts: [Int?] = []
     private var countingKey = ""
@@ -141,7 +141,6 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         }
         backButton = make("chevron.backward", #selector(close))
         tocButton = make("list.bullet", #selector(showToc))
-        settingsButton = make("textformat.size", #selector(showSettings))
         progressLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         progressLabel.textColor = .secondaryLabel
         slider.minimumValue = 0
@@ -566,7 +565,15 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             self.applyOrientation()
             self.applyTapZones()
         })
-        if let sheet = host.sheetPresentationController { sheet.detents = [.medium()]; sheet.prefersGrabberVisible = true }
+        if let sheet = host.sheetPresentationController {
+            // невысокая панель, страница сверху не затемняется — изменения видны сразу
+            let small = UISheetPresentationController.Detent.Identifier("small")
+            sheet.detents = [.custom(identifier: small) { ctx in ctx.maximumDetentValue * 0.46 }, .large()]
+            sheet.selectedDetentIdentifier = small
+            sheet.largestUndimmedDetentIdentifier = small
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+        }
         present(host, animated: true)
     }
     @objc private func showToc() {
@@ -587,6 +594,9 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             },
             currentPlace: (current.chapter, currentRange),
             onToggleBookmark: { [weak self] in self?.toggleBookmark() },
+            onSettings: { [weak self] in
+                self?.dismiss(animated: true) { self?.showSettings() }
+            },
             progress: book.progress,
             liveSeconds: timer.currentSeconds,
             placeLabel: { [weak self] v in

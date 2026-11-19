@@ -8,6 +8,7 @@ struct TocView: View {
     let onBookmark: (Bookmark) -> Void
     var currentPlace: (chapter: Int, range: NSRange) = (0, NSRange(location: 0, length: 0))
     var onToggleBookmark: () -> Void = {}
+    var onSettings: () -> Void = {}
     var progress: Double = 0
     var liveSeconds: Int = 0                       // ещё не сохранённое время текущего чтения
     var placeLabel: (Double) -> String = { _ in "" }
@@ -34,7 +35,14 @@ struct TocView: View {
                         Text("Прогресс").tag(2)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 320)
+                    .frame(maxWidth: 290)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { onSettings() } label: {
+                        Text("Аа").font(.system(size: 17, weight: .semibold, design: .serif))
+                    }
+                    .tint(.green)
+                    .accessibilityLabel("Оформление")
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
