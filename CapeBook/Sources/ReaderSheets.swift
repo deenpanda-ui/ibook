@@ -116,7 +116,7 @@ struct TocView: View {
             ForEach(list) { bm in
                 Button { onBookmark(bm) } label: {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(bm.snippet.isEmpty ? "Закладка" : bm.snippet).lineLimit(2).foregroundStyle(.primary)
+                        Text(bm.snippet.isEmpty ? "Закладка" : bm.snippet).lineLimit(2).foregroundStyle(.green)
                         Text(bm.createdAt.formatted(.dateTime.day().month().hour().minute())).font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -142,7 +142,7 @@ struct TocView: View {
                         HStack {
                             Text(e.title)
                                 .font(e.level <= 1 ? .body.weight(.semibold) : .body)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(.green)
                                 .padding(.leading, CGFloat(max(0, e.level - 1)) * 16)
                             Spacer()
                             if e.chapter == currentChapter { Image(systemName: "bookmark.fill").foregroundStyle(.green) }
