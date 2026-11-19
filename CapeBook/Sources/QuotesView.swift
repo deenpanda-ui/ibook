@@ -3,6 +3,8 @@ import SwiftUI
 struct QuotesView: View {
     @EnvironmentObject var store: Store
     @State private var query = ""
+    @State private var expanded: Set<UUID> = []
+    private static let longQuote = 420               // длиннее — показываем начало и «Развернуть»
 
     private var bookFilter: UUID? { store.quotesFilter }
 
@@ -39,7 +41,24 @@ struct QuotesView: View {
                 }
                 ForEach(filtered) { q in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(q.text).font(.custom("Times New Roman", size: 18))
+                        let isLong = q.text.count > Self.longQuote
+                        let open = expanded.contains(q.id)
+                        Text(q.text)
+                            .font(.custom("Times New Roman", size: 21))
+                            .lineSpacing(2)
+                            .lineLimit(isLong && !open ? 8 : nil)
+                        if isLong {
+                            Button {
+                                withAnimation(.snappy) {
+                                    if open { expanded.remove(q.id) } else { expanded.insert(q.id) }
+                                }
+                            } label: {
+                                Label(open ? "Свернуть" : "Развернуть", systemImage: open ? "chevron.up" : "chevron.down")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.green)
+                            }
+                            .buttonStyle(.borderless)
+                        }
                         Text([q.bookAuthor, q.bookTitle].filter { !$0.isEmpty }.joined(separator: " · "))
                             .font(.footnote).foregroundStyle(.secondary)
                     }

@@ -203,7 +203,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     // MARK: вёрстка
     private var insets: UIEdgeInsets {
         let safe = view.window?.safeAreaInsets ?? view.safeAreaInsets
-        return UIEdgeInsets(top: max(safe.top, 20) + settings.topInset, left: 26, bottom: max(safe.bottom, 12) + settings.bottomInset, right: 26)
+        return UIEdgeInsets(top: max(safe.top, 20) + settings.topInset, left: 26, bottom: max(16, max(safe.bottom, 12) + settings.bottomInset), right: 26)
     }
     private var pageSize: CGSize {
         let i = insets

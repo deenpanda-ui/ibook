@@ -202,7 +202,7 @@ struct ReaderSettingsView: View {
                     }
                     VStack(alignment: .leading) {
                         Text("Отступ текста снизу: \(Int(settings.bottomInset))")
-                        Slider(value: $settings.bottomInset, in: 0...60, step: 2)
+                        Slider(value: $settings.bottomInset, in: -20...60, step: 2)
                     }
                     Toggle("Не поворачивать экран", isOn: $settings.lockOrientation)
                 }
