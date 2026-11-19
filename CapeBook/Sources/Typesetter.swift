@@ -89,6 +89,55 @@ struct ReaderSettings: Equatable {
     }
 }
 
+extension NSAttributedString.Key {
+    /// абзац, который нужно выровнять по ширине
+    static let ikJustify = NSAttributedString.Key("ik.justify")
+}
+
+// MARK: - Выравнивание по ширине только за счёт пробелов
+// Системное выравнивание в iOS 26 раздвигает и сами буквы («П р е д п о л о ж и м»).
+// Здесь строки сначала верстаются по левому краю, затем недостающая ширина
+// делится между пробелами строки — как в классических книгах и в прежнем приложении.
+func justifyByWordSpacing(_ storage: NSTextStorage, width: CGFloat) {
+    let lm = NSLayoutManager()
+    let tc = NSTextContainer(size: CGSize(width: width, height: CGFloat.greatestFiniteMagnitude))
+    tc.lineFragmentPadding = 0
+    lm.addTextContainer(tc)
+    storage.addLayoutManager(lm)
+    defer { storage.removeLayoutManager(lm) }
+    lm.ensureLayout(for: tc)
+    let ns = storage.string as NSString
+    var adjust: [(Int, CGFloat)] = []
+    var g = 0
+    let total = lm.numberOfGlyphs
+    while g < total {
+        var lineGlyphs = NSRange(location: 0, length: 0)
+        let lineRect = lm.lineFragmentRect(forGlyphAt: g, effectiveRange: &lineGlyphs)
+        g = max(g + 1, NSMaxRange(lineGlyphs))
+        let chars = lm.characterRange(forGlyphRange: lineGlyphs, actualGlyphRange: nil)
+        guard chars.length > 1, NSMaxRange(chars) < ns.length else { continue }       // последняя строка текста
+        guard storage.attribute(.ikJustify, at: chars.location, effectiveRange: nil) != nil else { continue }
+        let last = ns.character(at: NSMaxRange(chars) - 1)
+        if last == 10 || last == 0x2028 { continue }                                 // последняя строка абзаца
+        var end = NSMaxRange(chars)
+        while end > chars.location, ns.character(at: end - 1) == 32 { end -= 1 }
+        guard end > chars.location else { continue }
+        var spaces: [Int] = []
+        for i in chars.location..<end where ns.character(at: i) == 32 { spaces.append(i) }
+        guard !spaces.isEmpty else { continue }
+        let glyphs = lm.glyphRange(forCharacterRange: NSRange(location: chars.location, length: end - chars.location), actualCharacterRange: nil)
+        let used = lm.boundingRect(forGlyphRange: glyphs, in: tc)
+        let extra = lineRect.maxX - used.maxX - 0.5
+        guard extra > 0.5, extra < width * 0.45 else { continue }
+        let per = extra / CGFloat(spaces.count)
+        for i in spaces { adjust.append((i, per)) }
+    }
+    guard !adjust.isEmpty else { return }
+    storage.beginEditing()
+    for (i, k) in adjust { storage.addAttribute(.kern, value: k, range: NSRange(location: i, length: 1)) }
+    storage.endEditing()
+}
+
 // MARK: - Вёрстка главы в текст
 
 struct ChapterText {
@@ -170,7 +219,7 @@ enum Typesetter {
                 para.paragraphSpacingBefore = s.fontSize * 0.6
                 para.paragraphSpacing = s.fontSize * 0.6
             case .paragraph:
-                para.alignment = .justified
+                para.alignment = .natural          // по ширине выравниваем сами — только пробелами (см. justifyByWordSpacing)
                 para.firstLineHeadIndent = s.fontSize * 1.4
             }
 
@@ -192,11 +241,13 @@ enum Typesetter {
                 out.append(NSAttributedString(string: " ", attributes: [.font: font(size: size, bold: false, italic: false), .paragraphStyle: para]))
             } else {
                 for r in b.runs {
-                    out.append(NSAttributedString(string: r.text, attributes: [
+                    var attrs: [NSAttributedString.Key: Any] = [
                         .font: font(size: size, bold: r.bold || forceBold, italic: r.italic || forceItalic),
                         .foregroundColor: color,
                         .paragraphStyle: para
-                    ]))
+                    ]
+                    if b.kind == .paragraph { attrs[.ikJustify] = true }
+                    out.append(NSAttributedString(string: r.text, attributes: attrs))
                 }
             }
             if i < blocks.count - 1 {
@@ -225,6 +276,7 @@ final class ChapterPages {
     init(text: ChapterText, pageSize: CGSize) {
         self.text = text
         storage = NSTextStorage(attributedString: text.string)
+        justifyByWordSpacing(storage, width: pageSize.width)
         layout = NSLayoutManager()
         layout.usesFontLeading = true
         storage.addLayoutManager(layout)
