@@ -6,26 +6,84 @@ struct TocView: View {
     let bookID: UUID
     let onSelect: (TocEntry) -> Void
     let onBookmark: (Bookmark) -> Void
+    var progress: Double = 0
+    var liveSeconds: Int = 0                       // ещё не сохранённое время текущего чтения
+    var placeLabel: (Double) -> String = { _ in "" }
+    var onSeek: (Double) -> Void = { _ in }
     @EnvironmentObject var store: Store
     @State private var mode = 0
+    @State private var scrub: Double = -1
 
     var body: some View {
         NavigationStack {
             Group {
-                if mode == 0 { contents } else { bookmarks }
+                if mode == 0 { contents } else if mode == 1 { bookmarks } else { progressTab }
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Picker("", selection: $mode) {
                         Text("Содержание").tag(0)
                         Text("Закладки").tag(1)
+                        Text("Прогресс").tag(2)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 240)
+                    .frame(width: 320)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    // MARK: вкладка «Прогресс»: шкала всей книги и время чтения
+    private var progressTab: some View {
+        let value = scrub >= 0 ? scrub : progress
+        let mine = store.sessions.filter { $0.bookID == bookID }
+        let total = mine.reduce(0) { $0 + $1.seconds } + liveSeconds
+        let cal = Calendar.current
+        let dayStart: Date = {
+            let now = Date().addingTimeInterval(-5 * 3600)          // день начинается в 5:00
+            return cal.startOfDay(for: now).addingTimeInterval(5 * 3600)
+        }()
+        let today = mine.filter { $0.start >= dayStart }.reduce(0) { $0 + $1.seconds } + liveSeconds
+        let days = Set(mine.map { cal.startOfDay(for: $0.start.addingTimeInterval(-5 * 3600)) }).count
+        let first = mine.map(\.start).min()
+        let pagesRead = mine.reduce(0) { $0 + $1.pages }
+        return List {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("\(Int((value * 100).rounded())) %").font(.system(size: 34, weight: .bold, design: .rounded)).monospacedDigit()
+                        Spacer()
+                        Text(placeLabel(value)).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    Slider(value: Binding(get: { value }, set: { scrub = $0 }), in: 0...1) { editing in
+                        if !editing, scrub >= 0 { onSeek(scrub) }
+                    }
+                    .tint(.green)
+                    Text("Перетащите ползунок, чтобы перейти в любое место книги.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 6)
+            }
+            Section("Время чтения этой книги") {
+                LabeledContent("Всего", value: Self.duration(total))
+                LabeledContent("Сегодня", value: Self.duration(today))
+                if days > 0 { LabeledContent("Дней с книгой", value: "\(days)") }
+                if pagesRead > 0 { LabeledContent("Перевёрнуто страниц", value: "\(pagesRead)") }
+                if let first { LabeledContent("Начато", value: first.formatted(.dateTime.day().month().year())) }
+                if value > 0.02 && value < 1 && total > 120 {
+                    let left = Double(total) / value * (1 - value)
+                    LabeledContent("Осталось примерно", value: Self.duration(Int(left)))
+                }
+            }
+        }
+    }
+
+    static func duration(_ s: Int) -> String {
+        let h = s / 3600, m = (s % 3600) / 60
+        if h > 0 { return "\(h) ч \(m) мин" }
+        if m > 0 { return "\(m) мин" }
+        return s > 0 ? "< 1 мин" : "0 мин"
     }
 
     private var bookmarks: some View {

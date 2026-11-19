@@ -114,7 +114,6 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         slider.minimumTrackTintColor = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)
         slider.addTarget(self, action: #selector(sliderMoved), for: .valueChanged)
         slider.addTarget(self, action: #selector(sliderReleased), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        toolbarItems = [UIBarButtonItem(customView: slider), UIBarButtonItem(customView: progressLabel)]
         navigationController?.setNavigationBarHidden(true, animated: false)
         navigationController?.setToolbarHidden(true, animated: false)
 
@@ -155,7 +154,6 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        slider.frame = CGRect(x: 0, y: 0, width: max(120, view.bounds.width - 140), height: 34)
         let size = view.bounds.size
         guard size.width > 0, size != laidOutSize else { return }
         let firstLayout = laidOutSize == .zero
@@ -293,7 +291,6 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     @objc private func centerTap(_ g: UITapGestureRecognizer) {
         chromeHidden.toggle()
         navigationController?.setNavigationBarHidden(chromeHidden, animated: true)
-        navigationController?.setToolbarHidden(chromeHidden, animated: true)
         UIView.animate(withDuration: 0.25) { self.setNeedsStatusBarAppearanceUpdate() }
     }
 
@@ -393,6 +390,20 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                 let p = self.pages(bm.chapter)
                 self.show(bm.chapter, p.page(containing: bm.offset), animated: true, forward: bm.chapter >= self.current.chapter)
                 self.savePosition()
+            },
+            progress: book.progress,
+            liveSeconds: timer.currentSeconds,
+            placeLabel: { [weak self] v in
+                guard let self else { return "" }
+                let c = min(max(0, self.content.chapterCount - 1), Int(v * Double(max(1, self.content.chapterCount))))
+                return entries.last(where: { $0.chapter <= c })?.title ?? "Глава \(c + 1)"
+            },
+            onSeek: { [weak self] v in
+                guard let self else { return }
+                self.timer.activity(pageTurn: false)
+                let t = self.target(for: Float(v))
+                self.show(t.chapter, t.page, animated: false, forward: true)
+                self.savePosition()
             }).environmentObject(Store.shared))
         if let sheet = host.sheetPresentationController { sheet.detents = [.medium(), .large()]; sheet.prefersGrabberVisible = true }
         present(host, animated: true)
@@ -433,6 +444,7 @@ final class ReadingTimer {
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.beat() }
     }
     func resume() { if tick == nil { start() } }
+    var currentSeconds: Int { seconds }
     func activity(pageTurn: Bool) {
         lastActivity = Date()
         if pageTurn { pages += 1 }
