@@ -118,6 +118,13 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         tap.delegate = self
         view.addGestureRecognizer(tap)
         centerTapRecognizer = tap
+        // свои тапы не должны «отменять» касание у текста: иначе выделение, сделанное долгим
+        // нажатием, сбрасывается в момент, когда палец отпускают
+        for g in [tap, sideTap] {
+            g.cancelsTouchesInView = false
+            g.delaysTouchesBegan = false
+            g.delaysTouchesEnded = false
+        }
         // свайп перелистывания не должен перехватывать выделение текста
         for g in pageVC.gestureRecognizers where g is UIPanGestureRecognizer { g.delegate = self }
         sideTap.addTarget(self, action: #selector(sideTapped(_:)))
@@ -394,7 +401,10 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         return true
     }
     func textViewDidChangeSelection(_ textView: UITextView) {
-        if textView.selectedRange.length > 0 { selectingTextView = textView }
+        if textView.selectedRange.length > 0 {
+            if selectingTextView == nil { Diagnostics.log("выделение: \(textView.selectedRange.length) зн.") }
+            selectingTextView = textView
+        }
         else if selectingTextView === textView { selectingTextView = nil }
     }
     // тап-зоны: обычные — встроенные в перелистывание; поменянные — свои
