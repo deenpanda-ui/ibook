@@ -5,7 +5,7 @@ import CoreText
 
 enum PaperTheme: Int, CaseIterable {
     // номера совпадают с прежними темами, чтобы сохранённый выбор не сбился
-    case light = 0, cream = 1, olive = 2, night = 3
+    case light = 0, cream = 1, olive = 2, night = 3, parchment = 4
 
     var name: String {
         switch self {
@@ -13,6 +13,7 @@ enum PaperTheme: Int, CaseIterable {
         case .cream: return "Кремовая бумага"
         case .olive: return "Оливковая"
         case .night: return "Ночная"
+        case .parchment: return "Пергамент"
         }
     }
     var imageName: String {
@@ -21,6 +22,7 @@ enum PaperTheme: Int, CaseIterable {
         case .cream: return "paper_cream"
         case .olive: return "paper_olive"
         case .night: return "paper_night"
+        case .parchment: return "paper_parchment"
         }
     }
     /// фон-картинка (ваши обои) и средний цвет на случай, если картинки нет
@@ -31,6 +33,7 @@ enum PaperTheme: Int, CaseIterable {
         case .cream: return UIColor(red: 247/255, green: 229/255, blue: 203/255, alpha: 1)
         case .olive: return UIColor(red: 103/255, green: 106/255, blue: 81/255, alpha: 1)
         case .night: return UIColor(red: 36/255, green: 36/255, blue: 36/255, alpha: 1)
+        case .parchment: return UIColor(red: 236/255, green: 192/255, blue: 128/255, alpha: 1)
         }
     }
     var text: UIColor {
@@ -39,6 +42,7 @@ enum PaperTheme: Int, CaseIterable {
         case .cream: return UIColor(red: 0.20, green: 0.15, blue: 0.10, alpha: 1)
         case .olive: return UIColor(red: 0.05, green: 0.06, blue: 0.04, alpha: 1)
         case .night: return UIColor(red: 0.80, green: 0.78, blue: 0.74, alpha: 1)
+        case .parchment: return UIColor(red: 0.22, green: 0.14, blue: 0.07, alpha: 1)   // тёмно-коричневые «чернила»
         }
     }
     var isDark: Bool { self == .night }
