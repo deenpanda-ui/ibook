@@ -498,6 +498,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         // «Назад» — внизу слева, в закруглении экрана
         let bottomY = view.bounds.height - size - max(safe.bottom, 12) * 0.25 - 4
         backButton.frame = CGRect(x: left + 12, y: bottomY, width: size, height: size)
+        // меню (оглавление, закладки, прогресс, «Аа») — внизу справа, зеркально «Назад»
+        tocButton.frame = CGRect(x: right - 12 - size, y: bottomY, width: size, height: size)
         for (b, t) in zip(chromeButtons, saved) { b.transform = t }
         for b in chromeButtons { view.bringSubviewToFront(b) }
     }
