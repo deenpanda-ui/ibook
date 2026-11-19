@@ -422,19 +422,26 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         centerTouchStart = Date()
         return x > view.bounds.width * 0.3 && x < view.bounds.width * 0.7
     }
-    private var hasSelection: Bool { (selectingTextView?.selectedRange.length ?? 0) > 0 }
+    private var selectionStart = Date.distantPast
+    /// Настоящее выделение: больше одного знака (случайный тап иногда «выделяет» одну букву)
+    private var hasSelection: Bool { (selectingTextView?.selectedRange.length ?? 0) > 1 }
+    /// Выделение появилось уже во время этого касания — значит, его сделал сам тап, а не вы раньше
+    private func selectionMadeBy(touchStart: Date) -> Bool { selectionStart >= touchStart.addingTimeInterval(-0.05) }
     private func clearSelection() { selectingTextView?.selectedRange = NSRange(location: 0, length: 0); selectingTextView = nil }
     func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
         if g is UIPanGestureRecognizer {
             // пока текст выделен или палец держали дольше 0,35 с (это выделение) — страницу не листать
             if hasSelection { return false }
-            if Date().timeIntervalSince(panTouchStart) > 0.35 { return false }
+            if Date().timeIntervalSince(panTouchStart) > 0.45 { return false }
         }
         return true
     }
     func textViewDidChangeSelection(_ textView: UITextView) {
         if textView.selectedRange.length > 0 {
-            if selectingTextView == nil { Diagnostics.log("выделение: \(textView.selectedRange.length) зн.") }
+            if selectingTextView == nil {
+                selectionStart = Date()
+                Diagnostics.log("выделение: \(textView.selectedRange.length) зн.")
+            }
             selectingTextView = textView
         }
         else if selectingTextView === textView { selectingTextView = nil }
@@ -448,7 +455,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     @objc private func sideTapped(_ g: UITapGestureRecognizer) {
         // долгое нажатие (например, чтобы выделить текст) — не перелистывание
         guard Date().timeIntervalSince(sideTouchStart) < 0.35 else { return }
-        if hasSelection { clearSelection(); return }              // тап при выделении — просто снять выделение
+        if hasSelection && !selectionMadeBy(touchStart: sideTouchStart) { clearSelection(); return }   // тап при выделении — снять его
+        clearSelection()
         guard !turning, let cur = pageVC.viewControllers?.first else { return }
         let left = g.location(in: view).x < view.bounds.width / 2
         let forward = settings.swapTapZones ? left : !left
@@ -466,7 +474,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     }
     @objc private func centerTap(_ g: UITapGestureRecognizer) {
         guard Date().timeIntervalSince(centerTouchStart) < 0.35 else { return }   // долгое нажатие — это выделение
-        if hasSelection { clearSelection(); return }
+        if hasSelection && !selectionMadeBy(touchStart: centerTouchStart) { clearSelection(); return }
+        clearSelection()
         chromeHidden.toggle()
         for b in chromeButtons { b.isUserInteractionEnabled = !chromeHidden }
         UIView.animate(withDuration: 0.25) {
