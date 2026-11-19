@@ -6,6 +6,19 @@ struct LibraryView: View {
     @State private var importing = false
     @State private var reading: Book?
     @State private var toDelete: Book?
+    private static var autoOpened = false        // при запуске приложения — сразу в книгу, которую читали
+
+    /// Читаемая сейчас книга — первой; дальше недавно открытые, потом новые
+    private var ordered: [Book] {
+        store.books.sorted { a, b in
+            switch (a.lastOpenedAt, b.lastOpenedAt) {
+            case let (x?, y?): return x > y
+            case (_?, nil): return true
+            case (nil, _?): return false
+            default: return a.addedAt > b.addedAt
+            }
+        }
+    }
 
     private let columns = [GridItem(.flexible(), spacing: 26), GridItem(.flexible(), spacing: 26)]
     private var types: [UTType] {
@@ -24,7 +37,7 @@ struct LibraryView: View {
                         .padding(.top, 80)
                 }
                 LazyVGrid(columns: columns, spacing: 30) {
-                    ForEach(store.books) { book in
+                    ForEach(ordered) { book in
                         VStack(alignment: .leading, spacing: 8) {
                             Button { open(book) } label: { CoverView(book: book) }
                                 .buttonStyle(.plain)
@@ -42,6 +55,14 @@ struct LibraryView: View {
                 .padding(.bottom, 40)
             }
             .navigationTitle("Библиотека")
+            .animation(.default, value: ordered.map(\.id))
+            .onAppear {
+                guard !Self.autoOpened else { return }
+                Self.autoOpened = true
+                if let last = ordered.first, last.lastOpenedAt != nil, !last.isRead || last.progress < 1 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { reading = last }
+                }
+            }
             .fileImporter(isPresented: $importing, allowedContentTypes: types, allowsMultipleSelection: true) { result in
                 if case .success(let urls) = result { for u in urls { store.importBook(from: u) } }
             }
@@ -59,7 +80,10 @@ struct LibraryView: View {
 
     private func open(_ book: Book) {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        reading = book
+        var b = book
+        b.lastOpenedAt = Date()
+        store.update(b)
+        reading = b
     }
 
     private func menu(_ book: Book) -> some View {
