@@ -47,6 +47,8 @@ struct LibraryView: View {
             }
             .fullScreenCover(item: $reading) { book in
                 ReaderScreen(book: book).ignoresSafeArea()
+                    .statusBarHidden(true)
+                    .persistentSystemOverlays(.hidden)
             }
             .confirmationDialog("Удалить книгу?", isPresented: Binding(get: { toDelete != nil }, set: { if !$0 { toDelete = nil } }),
                                 titleVisibility: .visible, presenting: toDelete) { book in

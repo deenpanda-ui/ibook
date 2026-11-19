@@ -69,7 +69,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private var current: (chapter: Int, page: Int) = (0, 0)
     private var chromeHidden = true
     private let progressLabel = UILabel()
-    private var bookmarkItem = UIBarButtonItem()
+    private var backButton = UIButton()
+    private var tocButton = UIButton()
+    private var bookmarkButton = UIButton()
+    private var settingsButton = UIButton()
+    private var chromeButtons: [UIButton] { [backButton, tocButton, bookmarkButton, settingsButton] }
     private let slider = UISlider()
     private let timer: ReadingTimer
     private let sideTap = UITapGestureRecognizer()
@@ -106,15 +110,24 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         view.addGestureRecognizer(sideTap)
         applyTapZones()
 
-        title = book.title
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"),
-                                                           style: .plain, target: self, action: #selector(close))
-        bookmarkItem = UIBarButtonItem(image: UIImage(systemName: "bookmark"), style: .plain, target: self, action: #selector(toggleBookmark))
-        navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(systemName: "list.bullet"), style: .plain, target: self, action: #selector(showToc)),
-            bookmarkItem,
-            UIBarButtonItem(image: UIImage(systemName: "textformat.size"), style: .plain, target: self, action: #selector(showSettings))
-        ]
+        // кнопки — по бокам от Dynamic Island, вместо часов, батареи и сети
+        let tint = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)
+        func make(_ symbol: String, _ action: Selector) -> UIButton {
+            var cfg = UIButton.Configuration.glass()
+            cfg.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold))
+            cfg.baseForegroundColor = tint
+            cfg.cornerStyle = .capsule
+            let b = UIButton(configuration: cfg)
+            b.addTarget(self, action: action, for: .touchUpInside)
+            b.alpha = 0
+            b.isUserInteractionEnabled = false
+            view.addSubview(b)
+            return b
+        }
+        backButton = make("chevron.backward", #selector(close))
+        tocButton = make("list.bullet", #selector(showToc))
+        bookmarkButton = make("bookmark", #selector(toggleBookmark))
+        settingsButton = make("textformat.size", #selector(showSettings))
         progressLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         progressLabel.textColor = .secondaryLabel
         slider.minimumValue = 0
@@ -157,11 +170,13 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     @objc private func appBackground() { timer.pause(progress: book.progress); savePosition() }
     @objc private func appForeground() { timer.resume() }
 
-    override var prefersStatusBarHidden: Bool { chromeHidden }
+    override var prefersStatusBarHidden: Bool { true }      // в чтении часы, батарея и сеть не показываются
+    override var prefersHomeIndicatorAutoHidden: Bool { true }
     override var preferredStatusBarStyle: UIStatusBarStyle { settings.theme.isDark ? .lightContent : .darkContent }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        layoutChromeButtons()
         let size = view.bounds.size
         guard size.width > 0, size != laidOutSize else { return }
         let firstLayout = laidOutSize == .zero
@@ -254,7 +269,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private func updateBookmarkIcon() {
         let r = currentRange
         let marked = (Store.shared.book(book.id)?.bookmarks ?? []).contains { $0.chapter == current.chapter && NSLocationInRange($0.offset, r) }
-        bookmarkItem.image = UIImage(systemName: marked ? "bookmark.fill" : "bookmark")
+        bookmarkButton.configuration?.image = UIImage(systemName: marked ? "bookmark.fill" : "bookmark",
+                                                       withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold))
     }
     @objc private func toggleBookmark() {
         let r = currentRange
@@ -292,6 +308,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     // MARK: касания
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         timer.activity(pageTurn: false)
+        if touch.view is UIControl { return false }               // нажатие на кнопку — не перелистывание
         let x = touch.location(in: view).x
         if g === sideTap { return x <= view.bounds.width * 0.3 || x >= view.bounds.width * 0.7 }
         return x > view.bounds.width * 0.3 && x < view.bounds.width * 0.7
@@ -318,8 +335,28 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
     @objc private func centerTap(_ g: UITapGestureRecognizer) {
         chromeHidden.toggle()
-        navigationController?.setNavigationBarHidden(chromeHidden, animated: true)
-        UIView.animate(withDuration: 0.25) { self.setNeedsStatusBarAppearanceUpdate() }
+        for b in chromeButtons { b.isUserInteractionEnabled = !chromeHidden }
+        UIView.animate(withDuration: 0.25) {
+            for b in self.chromeButtons {
+                b.alpha = self.chromeHidden ? 0 : 1
+                b.transform = self.chromeHidden ? CGAffineTransform(scaleX: 0.85, y: 0.85) : .identity
+            }
+        }
+    }
+    /// Две кнопки слева и две справа — на уровне Dynamic Island (там, где были время и батарея)
+    private func layoutChromeButtons() {
+        let safe = view.window?.safeAreaInsets ?? view.safeAreaInsets
+        let size: CGFloat = 40, gap: CGFloat = 10
+        let centerY = safe.top >= 40 ? safe.top * 0.5 + 1 : 12 + size / 2     // с «островком» — по его центру, иначе — у верхнего края
+        let left = max(safe.left, 0) + 18, right = view.bounds.width - max(safe.right, 0) - 18
+        let saved = chromeButtons.map { $0.transform }
+        for b in chromeButtons { b.transform = .identity }
+        backButton.frame = CGRect(x: left, y: centerY - size / 2, width: size, height: size)
+        tocButton.frame = CGRect(x: left + size + gap, y: centerY - size / 2, width: size, height: size)
+        settingsButton.frame = CGRect(x: right - size, y: centerY - size / 2, width: size, height: size)
+        bookmarkButton.frame = CGRect(x: right - 2 * size - gap, y: centerY - size / 2, width: size, height: size)
+        for (b, t) in zip(chromeButtons, saved) { b.transform = t }
+        for b in chromeButtons { view.bringSubviewToFront(b) }
     }
 
     // MARK: меню выделения — «В цитаты» и «Поделиться»
