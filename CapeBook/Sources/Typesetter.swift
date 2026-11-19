@@ -1,4 +1,5 @@
 import UIKit
+import CoreText
 
 // MARK: - Настройки чтения
 
@@ -145,12 +146,25 @@ func justifyByWordSpacing(_ storage: NSTextStorage, layout lm: NSLayoutManager, 
             }
         }
         guard !spaces.isEmpty else { continue }
-        let used = lm.boundingRect(forGlyphRange: NSRange(location: lineGlyphs.location, length: lastG - lineGlyphs.location + 1), in: tc)
-        let target = min(lineRect.maxX, tc.size.width)
-        let extra = target - used.maxX - 0.3
-        if log && logged < 3 {
+        // где кончается последний видимый знак: начало следующего глифа (если он в этой строке),
+        // иначе — позиция последнего глифа + его ширина по шрифту
+        let endX: CGFloat
+        if lastG + 1 < NSMaxRange(lineGlyphs) {
+            endX = lineRect.minX + lm.location(forGlyphAt: lastG + 1).x
+        } else {
+            var adv = CGSize.zero
+            var glyph = lm.cgGlyph(at: lastG)
+            let font = (storage.attribute(.font, at: min(lastCI, ns.length - 1), effectiveRange: nil) as? UIFont) ?? UIFont.systemFont(ofSize: 17)
+            CTFontGetAdvancesForGlyphs(font as CTFont, .horizontal, &glyph, &adv, 1)
+            endX = lineRect.minX + lm.location(forGlyphAt: lastG).x + adv.width
+        }
+        let target = tc.size.width
+        let extra = target - endX - 0.3
+        if log && logged < 4 {
             logged += 1
-            Diagnostics.log(String(format: "justify: line w=%.1f target=%.1f used=%.1f extra=%.1f spaces=%d", lineRect.width, target, used.maxX, extra, spaces.count))
+            let bound = lm.boundingRect(forGlyphRange: NSRange(location: lineGlyphs.location, length: lastG - lineGlyphs.location + 1), in: tc)
+            Diagnostics.log(String(format: "justify: rect=%.1f..%.1f container=%.1f endX=%.1f bound=%.1f extra=%.1f spaces=%d",
+                                   lineRect.minX, lineRect.maxX, target, endX, bound.maxX, extra, spaces.count))
         }
         guard extra > 0.3, extra < tc.size.width * 0.5 else { continue }
         let per = extra / CGFloat(spaces.count)

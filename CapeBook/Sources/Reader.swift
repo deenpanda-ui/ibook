@@ -277,6 +277,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let p = pages(c).page(containing: offset)
         countingKey = ""
         pageCounts = []
+        Diagnostics.log("layout: view=\(view.bounds.size) insets=\(insets) page=\(pageSize) font=\(settings.fontFamily) \(settings.fontSize)")
         show(c, p, animated: false, forward: true)
         startCounting()
     }
