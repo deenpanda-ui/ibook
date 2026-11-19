@@ -39,6 +39,7 @@ final class PageViewController: UIViewController {
         textView.delegate = delegate
         view.addSubview(textView)
         numberLabel.text = pageNumber
+        numberLabel.adjustsFontSizeToFitWidth = true
         numberLabel.font = Typesetter.font(size: 13, bold: false, italic: false)
         numberLabel.textColor = settings.theme.text.withAlphaComponent(0.55)
         numberLabel.textAlignment = .center
@@ -46,12 +47,16 @@ final class PageViewController: UIViewController {
     }
     required init?(coder: NSCoder) { fatalError() }
 
+    func setNumber(_ s: String) { numberLabel.text = s }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height)
         // номер страницы — у самого низа экрана, над полоской «домой»
         let safeBottom = view.window?.safeAreaInsets.bottom ?? view.safeAreaInsets.bottom
-        numberLabel.frame = CGRect(x: 0, y: view.bounds.height - max(safeBottom, 12) * 0.5 - 22, width: view.bounds.width, height: 18)
+        let textBottom = insets.top + pageSize.height
+        let y = max(textBottom + 2, view.bounds.height - max(safeBottom, 12) * 0.5 - 22)
+        numberLabel.frame = CGRect(x: insets.left + 60, y: min(y, view.bounds.height - 18), width: max(40, view.bounds.width - insets.left - insets.right - 120), height: 18)
     }
 }
 
@@ -71,9 +76,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private let progressLabel = UILabel()
     private var backButton = UIButton()
     private var tocButton = UIButton()
-    private var bookmarkButton = UIButton()
     private var settingsButton = UIButton()
-    private var chromeButtons: [UIButton] { [backButton, tocButton, bookmarkButton, settingsButton] }
+    private var chromeButtons: [UIButton] { [backButton, tocButton, settingsButton] }
+    // общий счёт страниц по всей книге: число страниц в каждой главе (считается постепенно)
+    private var pageCounts: [Int?] = []
+    private var countingKey = ""
     private let slider = UISlider()
     private let timer: ReadingTimer
     private let sideTap = UITapGestureRecognizer()
@@ -126,7 +133,6 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         }
         backButton = make("chevron.backward", #selector(close))
         tocButton = make("list.bullet", #selector(showToc))
-        bookmarkButton = make("bookmark", #selector(toggleBookmark))
         settingsButton = make("textformat.size", #selector(showSettings))
         progressLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         progressLabel.textColor = .secondaryLabel
@@ -189,7 +195,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     // MARK: вёрстка
     private var insets: UIEdgeInsets {
         let safe = view.window?.safeAreaInsets ?? view.safeAreaInsets
-        return UIEdgeInsets(top: max(safe.top, 20) + settings.topInset, left: 26, bottom: max(safe.bottom, 12) + 30, right: 26)
+        return UIEdgeInsets(top: max(safe.top, 20) + settings.topInset, left: 26, bottom: max(safe.bottom, 12) + settings.bottomInset, right: 26)
     }
     private var pageSize: CGSize {
         let i = insets
@@ -212,10 +218,56 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         if let vc = pageCache[key] { return vc }
         let p = pages(chapter)
         let vc = PageViewController(chapter: chapter, page: page, pages: p, insets: insets, pageSize: pageSize,
-                                    settings: settings, pageNumber: "\(page + 1) / \(p.count)", delegate: self)
+                                    settings: settings, pageNumber: numberText(chapter, page, p.count), delegate: self)
         pageCache[key] = vc
         return vc
     }
+    // MARK: номера страниц по всей книге
+    private func numberText(_ chapter: Int, _ page: Int, _ count: Int) -> String {
+        guard let total = totalPages(), chapter < pageCounts.count else { return "" }   // пока не посчитано — без номера
+        let before = pageCounts[0..<chapter].reduce(0) { $0 + ($1 ?? 0) }
+        return "\(before + page + 1) из \(total)"
+    }
+    private func totalPages() -> Int? {
+        guard !pageCounts.isEmpty, !pageCounts.contains(where: { $0 == nil }) else { return nil }
+        return pageCounts.reduce(0) { $0 + ($1 ?? 0) }
+    }
+    /// Посчитать страницы всех глав — по одной главе за раз, не мешая листать; результат запоминается
+    private func startCounting() {
+        let s = settings, size = pageSize
+        let key = "pc.\(book.id.uuidString).\(s.fontFamily).\(s.fontSize).\(s.lineSpacing).\(Int(size.width))x\(Int(size.height)).v1"
+        countingKey = key
+        let n = content.chapterCount
+        if let saved = UserDefaults.standard.array(forKey: key) as? [Int], saved.count == n {
+            pageCounts = saved
+            refreshNumbers()
+            return
+        }
+        pageCounts = Array(repeating: nil, count: n)
+        for (c, p) in chapters { if c < n { pageCounts[c] = p.count } }
+        countNext(key: key)
+    }
+    private func countNext(key: String) {
+        guard key == countingKey else { return }               // настройки поменялись — старый счёт не нужен
+        guard let c = pageCounts.firstIndex(where: { $0 == nil }) else {
+            UserDefaults.standard.set(pageCounts.map { $0 ?? 0 }, forKey: key)
+            refreshNumbers()
+            return
+        }
+        if let p = chapters[c] { pageCounts[c] = p.count }
+        else {
+            let text = Typesetter.build(content.blocks(chapter: c), settings: settings, pageSize: pageSize)
+            pageCounts[c] = ChapterPages(text: text, pageSize: pageSize).count
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { [weak self] in self?.countNext(key: key) }
+    }
+    private func refreshNumbers() {
+        for vc in pageCache.values {
+            vc.setNumber(numberText(vc.chapter, vc.page, chapters[vc.chapter]?.count ?? 0))
+        }
+        if totalPages() != nil { pageChanged(turned: false) }
+    }
+
     private func relayout(goTo chapter: Int, offset: Int) {
         chapters = [:]
         pageCache = [:]
@@ -223,7 +275,10 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         guard content.chapterCount > 0 else { return }
         let c = min(max(0, chapter), content.chapterCount - 1)
         let p = pages(c).page(containing: offset)
+        countingKey = ""
+        pageCounts = []
         show(c, p, animated: false, forward: true)
+        startCounting()
     }
     private func show(_ chapter: Int, _ page: Int, animated: Bool, forward: Bool) {
         let vc = pageController(chapter, page)
@@ -237,11 +292,15 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     }
 
     // MARK: позиция и прогресс
-    private func pageChanged() {
+    private func pageChanged(turned: Bool = true) {
         let p = pages(current.chapter)
         let chapterFraction = Double(current.page + 1) / Double(max(1, p.count))
         let total = Double(max(1, content.chapterCount))
         var progress = (Double(current.chapter) + chapterFraction) / total
+        if let total = totalPages(), total > 0 {
+            let before = pageCounts[0..<current.chapter].reduce(0) { $0 + ($1 ?? 0) }
+            progress = Double(before + current.page + 1) / Double(total)
+        }
         if current.chapter == content.chapterCount - 1 && current.page == p.count - 1 { progress = 1 }
         book.progress = min(1, max(0, progress))
         book.chapter = current.chapter
@@ -249,8 +308,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         progressLabel.text = "\(Int((book.progress * 100).rounded())) %"
         progressLabel.sizeToFit()
         if !slider.isTracking { slider.value = Float(book.progress) }
-        timer.activity(pageTurn: true)
-        updateBookmarkIcon()
+        if turned { timer.activity(pageTurn: true) }
     }
     private func savePosition() {
         // берём свежую запись (там могут быть новые закладки) и меняем только место чтения
@@ -269,8 +327,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private func updateBookmarkIcon() {
         let r = currentRange
         let marked = (Store.shared.book(book.id)?.bookmarks ?? []).contains { $0.chapter == current.chapter && NSLocationInRange($0.offset, r) }
-        bookmarkButton.configuration?.image = UIImage(systemName: marked ? "bookmark.fill" : "bookmark",
-                                                       withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold))
+        _ = marked
     }
     @objc private func toggleBookmark() {
         let r = currentRange
@@ -343,7 +400,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             }
         }
     }
-    /// Две кнопки слева и две справа — на уровне Dynamic Island (там, где были время и батарея)
+    /// Оглавление — слева сверху, «Аа» — справа сверху — на уровне Dynamic Island (там, где были время и батарея)
     private func layoutChromeButtons() {
         let safe = view.window?.safeAreaInsets ?? view.safeAreaInsets
         let size: CGFloat = 40, gap: CGFloat = 10
@@ -351,10 +408,12 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let left = max(safe.left, 0) + 18, right = view.bounds.width - max(safe.right, 0) - 18
         let saved = chromeButtons.map { $0.transform }
         for b in chromeButtons { b.transform = .identity }
-        backButton.frame = CGRect(x: left, y: centerY - size / 2, width: size, height: size)
-        tocButton.frame = CGRect(x: left + size + gap, y: centerY - size / 2, width: size, height: size)
+        _ = gap
+        tocButton.frame = CGRect(x: left, y: centerY - size / 2, width: size, height: size)
         settingsButton.frame = CGRect(x: right - size, y: centerY - size / 2, width: size, height: size)
-        bookmarkButton.frame = CGRect(x: right - 2 * size - gap, y: centerY - size / 2, width: size, height: size)
+        // «Назад» — внизу слева
+        let bottomY = view.bounds.height - max(safe.bottom, 12) * 0.5 - 6 - size
+        backButton.frame = CGRect(x: left, y: bottomY, width: size, height: size)
         for (b, t) in zip(chromeButtons, saved) { b.transform = t }
         for b in chromeButtons { view.bringSubviewToFront(b) }
     }
@@ -385,6 +444,14 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
 
     // MARK: шкала книги — перемотка в любое место
     private func target(for v: Float) -> (chapter: Int, page: Int) {
+        if let total = totalPages(), total > 0 {
+            var g = min(total - 1, max(0, Int(Double(v) * Double(total))))
+            for (c, n) in pageCounts.enumerated() {
+                let k = n ?? 0
+                if g < k { return (c, min(g, pages(c).count - 1)) }
+                g -= k
+            }
+        }
         let n = max(1, content.chapterCount)
         let x = Double(min(max(v, 0), 1)) * Double(n)
         let c = min(n - 1, Int(x))
@@ -432,6 +499,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             let needsLayout = new.fontSize != self.settings.fontSize || new.lineSpacing != self.settings.lineSpacing
                 || new.fontFamily != self.settings.fontFamily
                 || new.theme != self.settings.theme || new.topInset != self.settings.topInset
+                || new.bottomInset != self.settings.bottomInset
             self.settings = new
             new.save()
             if needsLayout { self.relayout(goTo: self.current.chapter, offset: off) }
@@ -457,6 +525,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                 self.show(bm.chapter, p.page(containing: bm.offset), animated: true, forward: bm.chapter >= self.current.chapter)
                 self.savePosition()
             },
+            currentPlace: (current.chapter, currentRange),
+            onToggleBookmark: { [weak self] in self?.toggleBookmark() },
             progress: book.progress,
             liveSeconds: timer.currentSeconds,
             placeLabel: { [weak self] v in

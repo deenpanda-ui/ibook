@@ -67,6 +67,7 @@ struct ReaderSettings: Equatable {
     var lineSpacing: CGFloat
     var topInset: CGFloat
     var lockOrientation: Bool
+    var bottomInset: CGFloat = 30      // отступ текста от нижнего края
     var swapTapZones: Bool = false     // тап слева — вперёд, справа — назад
 
     static func load() -> ReaderSettings {
@@ -78,6 +79,7 @@ struct ReaderSettings: Equatable {
             lineSpacing: d.object(forKey: "rs.lineSpacing") as? CGFloat ?? 4,
             topInset: d.object(forKey: "rs.topInset") as? CGFloat ?? 20,
             lockOrientation: d.bool(forKey: "rs.lockOrientation"),
+            bottomInset: d.object(forKey: "rs.bottomInset") as? CGFloat ?? 30,
             swapTapZones: d.bool(forKey: "rs.swapTapZones"))
     }
     func save() {
@@ -89,6 +91,7 @@ struct ReaderSettings: Equatable {
         d.set(topInset, forKey: "rs.topInset")
         d.set(lockOrientation, forKey: "rs.lockOrientation")
         d.set(swapTapZones, forKey: "rs.swapTapZones")
+        d.set(bottomInset, forKey: "rs.bottomInset")
     }
 }
 
@@ -185,7 +188,11 @@ enum Typesetter {
             for a in b.anchors { anchors[a] = start }
 
             let para = NSMutableParagraphStyle()
-            para.lineSpacing = s.lineSpacing
+            if s.lineSpacing >= 0 {
+                para.lineSpacing = s.lineSpacing
+            } else {
+                para.lineHeightMultiple = 1 + s.lineSpacing * 0.04   // −1…−6: строки плотнее обычного
+            }
             para.hyphenationFactor = 0            // без переносов слов
             para.lineBreakStrategy = []
             var size = s.fontSize

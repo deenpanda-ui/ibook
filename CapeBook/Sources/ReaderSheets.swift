@@ -6,6 +6,8 @@ struct TocView: View {
     let bookID: UUID
     let onSelect: (TocEntry) -> Void
     let onBookmark: (Bookmark) -> Void
+    var currentPlace: (chapter: Int, range: NSRange) = (0, NSRange(location: 0, length: 0))
+    var onToggleBookmark: () -> Void = {}
     var progress: Double = 0
     var liveSeconds: Int = 0                       // ещё не сохранённое время текущего чтения
     var placeLabel: (Double) -> String = { _ in "" }
@@ -88,7 +90,16 @@ struct TocView: View {
 
     private var bookmarks: some View {
         let list = store.book(bookID)?.bookmarks ?? []
+        let marked = list.contains { $0.chapter == currentPlace.chapter && NSLocationInRange($0.offset, currentPlace.range) }
         return List {
+            Section {
+                Button { onToggleBookmark() } label: {
+                    Label(marked ? "Убрать закладку с этой страницы" : "Добавить закладку",
+                          systemImage: marked ? "bookmark.slash" : "bookmark.fill")
+                        .foregroundStyle(marked ? Color.red : Color.green)
+                }
+            }
+            Section {
             ForEach(list) { bm in
                 Button { onBookmark(bm) } label: {
                     VStack(alignment: .leading, spacing: 4) {
@@ -98,11 +109,14 @@ struct TocView: View {
                 }
                 .swipeActions { Button(role: .destructive) { store.deleteBookmark(bookID: bookID, bm) } label: { Label("Удалить", systemImage: "trash") } }
             }
+            }
         }
         .overlay {
             if list.isEmpty {
                 ContentUnavailableView("Нет закладок", systemImage: "bookmark",
-                                       description: Text("Нажмите на значок закладки вверху страницы."))
+                                       description: Text("Нажмите «Добавить закладку» выше."))
+                    .padding(.top, 80)
+                    .allowsHitTesting(false)
             }
         }
     }
@@ -143,8 +157,8 @@ struct ReaderSettingsView: View {
                         }
                     }
                     .pickerStyle(.navigationLink)
-                    Stepper("Размер: \(Int(settings.fontSize))", value: $settings.fontSize, in: 14...34, step: 1)
-                    Stepper("Межстрочный: \(Int(settings.lineSpacing))", value: $settings.lineSpacing, in: 0...14, step: 1)
+                    Stepper("Размер: \(Int(settings.fontSize))", value: $settings.fontSize, in: 11...40, step: 1)
+                    Stepper("Межстрочный интервал: \(Int(settings.lineSpacing))", value: $settings.lineSpacing, in: -6...16, step: 1)
                 }
                 Section("Страница") {
                     VStack(alignment: .leading, spacing: 10) {
@@ -176,6 +190,10 @@ struct ReaderSettingsView: View {
                     VStack(alignment: .leading) {
                         Text("Отступ текста сверху: \(Int(settings.topInset))")
                         Slider(value: $settings.topInset, in: 0...80, step: 2)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("Отступ текста снизу: \(Int(settings.bottomInset))")
+                        Slider(value: $settings.bottomInset, in: 0...60, step: 2)
                     }
                     Toggle("Не поворачивать экран", isOn: $settings.lockOrientation)
                 }
