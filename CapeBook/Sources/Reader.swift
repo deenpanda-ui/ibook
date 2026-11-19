@@ -55,8 +55,8 @@ final class PageViewController: UIViewController {
         // номер страницы — у самого низа экрана, над полоской «домой»
         let safeBottom = view.window?.safeAreaInsets.bottom ?? view.safeAreaInsets.bottom
         let textBottom = insets.top + pageSize.height
-        let y = max(textBottom + 2, view.bounds.height - max(safeBottom, 12) * 0.5 - 22)
-        numberLabel.frame = CGRect(x: insets.left + 60, y: min(y, view.bounds.height - 18), width: max(40, view.bounds.width - insets.left - insets.right - 120), height: 18)
+        let y = max(textBottom + 1, view.bounds.height - max(safeBottom, 12) * 0.5 - 14)
+        numberLabel.frame = CGRect(x: insets.left + 60, y: min(y, view.bounds.height - 16), width: max(40, view.bounds.width - insets.left - insets.right - 120), height: 18)
     }
 }
 
@@ -235,7 +235,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     /// Посчитать страницы всех глав — по одной главе за раз, не мешая листать; результат запоминается
     private func startCounting() {
         let s = settings, size = pageSize
-        let key = "pc.\(book.id.uuidString).\(s.fontFamily).\(s.fontSize).\(s.lineSpacing).\(Int(size.width))x\(Int(size.height)).v1"
+        let key = "pc.\(book.id.uuidString).\(s.fontFamily).\(s.fontSize).\(s.lineSpacing).\(s.hyphenate).\(Int(size.width))x\(Int(size.height)).v2"
         countingKey = key
         let n = content.chapterCount
         if let saved = UserDefaults.standard.array(forKey: key) as? [Int], saved.count == n {
@@ -409,11 +409,19 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let saved = chromeButtons.map { $0.transform }
         for b in chromeButtons { b.transform = .identity }
         _ = gap
-        tocButton.frame = CGRect(x: left, y: centerY - size / 2, width: size, height: size)
-        settingsButton.frame = CGRect(x: right - size, y: centerY - size / 2, width: size, height: size)
-        // «Назад» — внизу слева
-        let bottomY = view.bounds.height - max(safe.bottom, 12) * 0.5 - 6 - size
-        backButton.frame = CGRect(x: left, y: bottomY, width: size, height: size)
+        let w = view.bounds.width
+        if safe.top >= 40 && w < view.bounds.height {
+            // посередине между краем Dynamic Island (~126 pt шириной) и краем экрана
+            let mid = (w - 126) / 4
+            tocButton.frame = CGRect(x: mid - size / 2, y: centerY - size / 2, width: size, height: size)
+            settingsButton.frame = CGRect(x: w - mid - size / 2, y: centerY - size / 2, width: size, height: size)
+        } else {
+            tocButton.frame = CGRect(x: left, y: centerY - size / 2, width: size, height: size)
+            settingsButton.frame = CGRect(x: right - size, y: centerY - size / 2, width: size, height: size)
+        }
+        // «Назад» — внизу слева, в закруглении экрана
+        let bottomY = view.bounds.height - size - max(safe.bottom, 12) * 0.25 - 4
+        backButton.frame = CGRect(x: left + 12, y: bottomY, width: size, height: size)
         for (b, t) in zip(chromeButtons, saved) { b.transform = t }
         for b in chromeButtons { view.bringSubviewToFront(b) }
     }
@@ -500,6 +508,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                 || new.fontFamily != self.settings.fontFamily
                 || new.theme != self.settings.theme || new.topInset != self.settings.topInset
                 || new.bottomInset != self.settings.bottomInset
+                || new.fontWeight != self.settings.fontWeight || new.hyphenate != self.settings.hyphenate
             self.settings = new
             new.save()
             if needsLayout { self.relayout(goTo: self.current.chapter, offset: off) }

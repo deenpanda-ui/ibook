@@ -21,6 +21,7 @@ struct TocView: View {
             Group {
                 if mode == 0 { contents } else if mode == 1 { bookmarks } else { progressTab }
             }
+            .listStyle(.insetGrouped)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Picker("", selection: $mode) {
@@ -103,7 +104,7 @@ struct TocView: View {
             ForEach(list) { bm in
                 Button { onBookmark(bm) } label: {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(bm.snippet.isEmpty ? "Закладка" : bm.snippet).lineLimit(2)
+                        Text(bm.snippet.isEmpty ? "Закладка" : bm.snippet).lineLimit(2).foregroundStyle(.primary)
                         Text(bm.createdAt.formatted(.dateTime.day().month().hour().minute())).font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -123,18 +124,19 @@ struct TocView: View {
 
     private var contents: some View {
             ScrollViewReader { proxy in
-                List(entries) { e in
+                List { Section { ForEach(entries) { e in
                     Button { onSelect(e) } label: {
                         HStack {
                             Text(e.title)
                                 .font(e.level <= 1 ? .body.weight(.semibold) : .body)
+                                .foregroundStyle(.primary)
                                 .padding(.leading, CGFloat(max(0, e.level - 1)) * 16)
                             Spacer()
                             if e.chapter == currentChapter { Image(systemName: "bookmark.fill").foregroundStyle(.green) }
                         }
                     }
                     .id(e.id)
-                }
+                } } }
                 .onAppear {
                     if let e = entries.last(where: { $0.chapter <= currentChapter }) { proxy.scrollTo(e.id, anchor: .center) }
                 }
@@ -158,6 +160,13 @@ struct ReaderSettingsView: View {
                     }
                     .pickerStyle(.navigationLink)
                     Stepper("Размер: \(Int(settings.fontSize))", value: $settings.fontSize, in: 11...40, step: 1)
+                    Picker("Насыщенность", selection: $settings.fontWeight) {
+                        Text("Обычный").tag(0)
+                        Text("Плотнее").tag(1)
+                        Text("Полужирный").tag(2)
+                        Text("Жирный").tag(3)
+                    }
+                    Toggle("Переносить по слогам", isOn: $settings.hyphenate)
                     Stepper("Межстрочный интервал: \(Int(settings.lineSpacing))", value: $settings.lineSpacing, in: -6...16, step: 1)
                 }
                 Section("Страница") {

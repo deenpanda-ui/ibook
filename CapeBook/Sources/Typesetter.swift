@@ -68,7 +68,9 @@ struct ReaderSettings: Equatable {
     var topInset: CGFloat
     var lockOrientation: Bool
     var bottomInset: CGFloat = 30      // отступ текста от нижнего края
-    var swapTapZones: Bool = false     // тап слева — вперёд, справа — назад
+    var swapTapZones: Bool = false
+    var fontWeight: Int = 0            // 0 обычный … 3 жирный
+    var hyphenate: Bool = false        // переносы слов по слогам     // тап слева — вперёд, справа — назад
 
     static func load() -> ReaderSettings {
         let d = UserDefaults.standard
@@ -80,7 +82,9 @@ struct ReaderSettings: Equatable {
             topInset: d.object(forKey: "rs.topInset") as? CGFloat ?? 20,
             lockOrientation: d.bool(forKey: "rs.lockOrientation"),
             bottomInset: d.object(forKey: "rs.bottomInset") as? CGFloat ?? 30,
-            swapTapZones: d.bool(forKey: "rs.swapTapZones"))
+            swapTapZones: d.bool(forKey: "rs.swapTapZones"),
+            fontWeight: d.integer(forKey: "rs.fontWeight"),
+            hyphenate: d.bool(forKey: "rs.hyphenate"))
     }
     func save() {
         let d = UserDefaults.standard
@@ -92,6 +96,8 @@ struct ReaderSettings: Equatable {
         d.set(lockOrientation, forKey: "rs.lockOrientation")
         d.set(swapTapZones, forKey: "rs.swapTapZones")
         d.set(bottomInset, forKey: "rs.bottomInset")
+        d.set(fontWeight, forKey: "rs.fontWeight")
+        d.set(hyphenate, forKey: "rs.hyphenate")
     }
 }
 
@@ -102,46 +108,62 @@ extension NSAttributedString.Key {
 
 // MARK: - Выравнивание по ширине только за счёт пробелов
 // Системное выравнивание в iOS 26 раздвигает и сами буквы («П р е д п о л о ж и м»).
-// Здесь строки сначала верстаются по левому краю, затем недостающая ширина
-// делится между пробелами строки — как в классических книгах и в прежнем приложении.
-func justifyByWordSpacing(_ storage: NSTextStorage, width: CGFloat) {
-    let lm = NSLayoutManager()
-    let tc = NSTextContainer(size: CGSize(width: width, height: CGFloat.greatestFiniteMagnitude))
-    tc.lineFragmentPadding = 0
-    lm.addTextContainer(tc)
-    storage.addLayoutManager(lm)
-    defer { storage.removeLayoutManager(lm) }
-    lm.ensureLayout(for: tc)
+// Здесь строки верстаются по левому краю, затем недостающая до правого края ширина
+// делится между пробелами строки. Замер идёт по настоящей вёрстке страниц,
+// в несколько проходов — пока строки не дотянутся точно до края.
+@discardableResult
+func justifyByWordSpacing(_ storage: NSTextStorage, layout lm: NSLayoutManager, log: Bool = false) -> Int {
     let ns = storage.string as NSString
     var adjust: [(Int, CGFloat)] = []
     var g = 0
     let total = lm.numberOfGlyphs
+    var logged = 0
     while g < total {
         var lineGlyphs = NSRange(location: 0, length: 0)
         let lineRect = lm.lineFragmentRect(forGlyphAt: g, effectiveRange: &lineGlyphs)
         g = max(g + 1, NSMaxRange(lineGlyphs))
+        guard lineGlyphs.length > 1, let tc = lm.textContainer(forGlyphAt: lineGlyphs.location, effectiveRange: nil) else { continue }
         let chars = lm.characterRange(forGlyphRange: lineGlyphs, actualGlyphRange: nil)
-        guard chars.length > 1, NSMaxRange(chars) < ns.length else { continue }       // последняя строка текста
+        guard chars.length > 1, NSMaxRange(chars) < ns.length else { continue }        // последняя строка текста
         guard storage.attribute(.ikJustify, at: chars.location, effectiveRange: nil) != nil else { continue }
-        let last = ns.character(at: NSMaxRange(chars) - 1)
-        if last == 10 || last == 0x2028 { continue }                                 // последняя строка абзаца
-        var end = NSMaxRange(chars)
-        while end > chars.location, ns.character(at: end - 1) == 32 { end -= 1 }
-        guard end > chars.location else { continue }
+        let lastChar = ns.character(at: NSMaxRange(chars) - 1)
+        if lastChar == 10 || lastChar == 0x2028 || lastChar == 0x2029 { continue }   // последняя строка абзаца
+        // последний видимый знак строки (пробелы в конце не считаются, дефис переноса — считается)
+        var lastG = NSMaxRange(lineGlyphs) - 1
+        while lastG > lineGlyphs.location {
+            let ci = lm.characterIndexForGlyph(at: lastG)
+            guard ci < ns.length else { break }
+            let ch = ns.character(at: ci)
+            if ch == 32 || ch == 0xA0 || ch == 10 || ch == 9 { lastG -= 1 } else { break }
+        }
+        let lastCI = lm.characterIndexForGlyph(at: lastG)
         var spaces: [Int] = []
-        for i in chars.location..<end where ns.character(at: i) == 32 { spaces.append(i) }
+        if lastCI > chars.location {
+            for i in chars.location..<min(lastCI, NSMaxRange(chars)) {
+                let ch = ns.character(at: i)
+                if ch == 32 || ch == 0xA0 { spaces.append(i) }
+            }
+        }
         guard !spaces.isEmpty else { continue }
-        let glyphs = lm.glyphRange(forCharacterRange: NSRange(location: chars.location, length: end - chars.location), actualCharacterRange: nil)
-        let used = lm.boundingRect(forGlyphRange: glyphs, in: tc)
-        let extra = lineRect.maxX - used.maxX - 0.5
-        guard extra > 0.5, extra < width * 0.45 else { continue }
+        let used = lm.boundingRect(forGlyphRange: NSRange(location: lineGlyphs.location, length: lastG - lineGlyphs.location + 1), in: tc)
+        let target = min(lineRect.maxX, tc.size.width)
+        let extra = target - used.maxX - 0.3
+        if log && logged < 3 {
+            logged += 1
+            Diagnostics.log(String(format: "justify: line w=%.1f target=%.1f used=%.1f extra=%.1f spaces=%d", lineRect.width, target, used.maxX, extra, spaces.count))
+        }
+        guard extra > 0.3, extra < tc.size.width * 0.5 else { continue }
         let per = extra / CGFloat(spaces.count)
         for i in spaces { adjust.append((i, per)) }
     }
-    guard !adjust.isEmpty else { return }
+    guard !adjust.isEmpty else { return 0 }
     storage.beginEditing()
-    for (i, k) in adjust { storage.addAttribute(.kern, value: k, range: NSRange(location: i, length: 1)) }
+    for (i, k) in adjust {
+        let old = (storage.attribute(.kern, at: i, effectiveRange: nil) as? CGFloat) ?? 0
+        storage.addAttribute(.kern, value: old + k, range: NSRange(location: i, length: 1))
+    }
     storage.endEditing()
+    return adjust.count
 }
 
 // MARK: - Вёрстка главы в текст
@@ -193,7 +215,7 @@ enum Typesetter {
             } else {
                 para.lineHeightMultiple = 1 + s.lineSpacing * 0.04   // −1…−6: строки плотнее обычного
             }
-            para.hyphenationFactor = 0            // без переносов слов
+            para.hyphenationFactor = s.hyphenate && b.kind == .paragraph ? 1 : 0   // переносы — по настройке
             para.lineBreakStrategy = []
             var size = s.fontSize
             var forceBold = false
@@ -267,6 +289,11 @@ enum Typesetter {
         if out.length == 0 {
             out.append(NSAttributedString(string: " ", attributes: [.font: font(size: s.fontSize, bold: false, italic: false)]))
         }
+        // насыщенность: буквы чуть «обводятся» цветом текста — работает для любого шрифта
+        let stroke: [CGFloat] = [0, -1.5, -3, -4.5]
+        if s.fontWeight > 0, s.fontWeight < stroke.count {
+            out.addAttributes([.strokeWidth: stroke[s.fontWeight], .strokeColor: color], range: NSRange(location: 0, length: out.length))
+        }
         return ChapterText(string: out, blockStarts: starts, anchors: anchors)
     }
 }
@@ -286,33 +313,57 @@ final class ChapterPages {
     init(text: ChapterText, pageSize: CGSize) {
         self.text = text
         storage = NSTextStorage(attributedString: text.string)
-        justifyByWordSpacing(storage, width: pageSize.width)
         layout = NSLayoutManager()
         layout.usesFontLeading = true
         storage.addLayoutManager(layout)
+        self.pageSize = pageSize
+        paginate()
+        // выравнивание по ширине пробелами — по готовым страницам, 3 прохода с уточнением
+        for pass in 0..<3 {
+            for c in containers { layout.ensureLayout(for: c) }
+            if justifyByWordSpacing(storage, layout: layout, log: pass < 2 && ChapterPages.logOnce) == 0 { break }
+        }
+        ChapterPages.logOnce = false
+        paginate()
+    }
+    private let pageSize: CGSize
+    static var logOnce = true
+
+    /// Разложить текст по страницам (добавляет недостающие страницы, убирает пустые, пересчитывает диапазоны)
+    private func paginate() {
         var safety = 0
+        ranges = []
+        var idx = 0
         while safety < 5000 {
             safety += 1
-            let container = NSTextContainer(size: pageSize)
-            container.lineFragmentPadding = 0
-            layout.addTextContainer(container)
-            let glyphs = layout.glyphRange(for: container)
-            if glyphs.length == 0 {
-                layout.removeTextContainer(at: layout.textContainers.count - 1)
-                break
+            let container: NSTextContainer
+            if idx < containers.count {
+                container = containers[idx]
+            } else {
+                container = NSTextContainer(size: pageSize)
+                container.lineFragmentPadding = 0
+                layout.addTextContainer(container)
+                containers.append(container)
             }
+            let glyphs = layout.glyphRange(for: container)
+            if glyphs.length == 0 { break }
             let chars = layout.characterRange(forGlyphRange: glyphs, actualGlyphRange: nil)
-            containers.append(container)
             ranges.append(chars)
+            idx += 1
             if NSMaxRange(chars) >= storage.length { break }
+        }
+        // лишние пустые страницы в конце — убрать
+        while containers.count > max(1, ranges.count) {
+            layout.removeTextContainer(at: containers.count - 1)
+            containers.removeLast()
         }
         if containers.isEmpty {
             let c = NSTextContainer(size: pageSize)
             c.lineFragmentPadding = 0
             layout.addTextContainer(c)
             containers = [c]
-            ranges = [NSRange(location: 0, length: storage.length)]
         }
+        if ranges.isEmpty { ranges = [NSRange(location: 0, length: storage.length)] }
     }
 
     var count: Int { containers.count }
