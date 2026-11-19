@@ -72,19 +72,22 @@ struct CoverView: View {
     @EnvironmentObject var store: Store
 
     var body: some View {
-        Group {
-            if let url = store.coverURL(book), let img = UIImage(contentsOfFile: url.path) {
-                Image(uiImage: img).resizable().scaledToFill()
-            } else {
-                PlaceholderCover(title: book.title, author: book.author)
+        // рамка строго 2:3 — обложка заполняет её целиком, лишнее обрезается; так все книги одного размера
+        Color.clear
+            .aspectRatio(2.0 / 3.0, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                if let url = store.coverURL(book), let img = UIImage(contentsOfFile: url.path) {
+                    Image(uiImage: img).resizable().scaledToFill()
+                } else {
+                    PlaceholderCover(title: book.title, author: book.author)
+                }
             }
-        }
-        .aspectRatio(2.0 / 3.0, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-        .overlay(alignment: .center) {
-            if book.isRead { ReadStamp().offset(y: 40) }
-        }
-        .shadow(color: .black.opacity(0.5), radius: 10, y: 6)
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .overlay(alignment: .center) {
+                if book.isRead { ReadStamp().offset(y: 40) }
+            }
+            .shadow(color: .black.opacity(0.5), radius: 10, y: 6)
     }
 }
 
