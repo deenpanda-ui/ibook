@@ -172,7 +172,11 @@ struct ReaderSettingsView: View {
                         Text("Полужирный").tag(2)
                         Text("Жирный").tag(3)
                     }
-                    Toggle("Переносить по слогам", isOn: $settings.hyphenate)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Toggle("Переносить слова", isOn: $settings.hyphenate)
+                        Text("Слово, которое не помещается в строку, делится по слогам и переносится через дефис — пробелы между словами становятся ровнее.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                     Stepper("Межстрочный интервал: \(Int(settings.lineSpacing))", value: $settings.lineSpacing, in: -6...16, step: 1)
                 }
                 Section("Страница") {

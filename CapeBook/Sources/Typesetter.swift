@@ -174,6 +174,21 @@ func justifyByWordSpacing(_ storage: NSTextStorage, layout lm: NSLayoutManager, 
         let per = extra / CGFloat(spaces.count)
         for i in spaces { adjust.append((i, per)) }
     }
+    if log {
+        // сколько строк закончилось переносом (строка обрывается посреди слова)
+        var hyph = 0, gi = 0
+        while gi < total {
+            var r = NSRange(location: 0, length: 0)
+            lm.lineFragmentRect(forGlyphAt: gi, effectiveRange: &r)
+            gi = max(gi + 1, NSMaxRange(r))
+            let ch = lm.characterRange(forGlyphRange: r, actualGlyphRange: nil)
+            let e = NSMaxRange(ch)
+            if e > 0, e < ns.length,
+               CharacterSet.letters.contains(UnicodeScalar(ns.character(at: e - 1)) ?? " "),
+               CharacterSet.letters.contains(UnicodeScalar(ns.character(at: e)) ?? " ") { hyph += 1 }
+        }
+        Diagnostics.log("переносов в главе: \(hyph)")
+    }
     guard !adjust.isEmpty else { return 0 }
     storage.beginEditing()
     for (i, k) in adjust {
@@ -311,6 +326,17 @@ enum Typesetter {
         let stroke: [CGFloat] = [0, -1.5, -3, -4.5]
         if s.fontWeight > 0, s.fontWeight < stroke.count {
             out.addAttributes([.strokeWidth: stroke[s.fontWeight], .strokeColor: color], range: NSRange(location: 0, length: out.length))
+        }
+        // язык текста — нужен системе, чтобы правильно делить слова на слоги для переноса
+        if s.hyphenate, out.length > 0 {
+            let sample = (out.string as NSString).substring(to: min(out.length, 2000))
+            let cyr = sample.unicodeScalars.filter { (0x400...0x4FF).contains($0.value) }.count
+            let lang = cyr > sample.count / 10 ? "ru" : "en"
+            out.addAttribute(NSAttributedString.Key(rawValue: kCTLanguageAttributeName as String), value: lang,
+                             range: NSRange(location: 0, length: out.length))
+            if ChapterPages.logOnce {
+                Diagnostics.log("переносы: язык \(lang), доступно: \(CFStringIsHyphenationAvailableForLocale(Locale(identifier: lang) as CFLocale))")
+            }
         }
         return ChapterText(string: out, blockStarts: starts, anchors: anchors)
     }
