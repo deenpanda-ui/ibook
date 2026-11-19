@@ -9,6 +9,8 @@ final class PageViewController: UIViewController {
     let page: Int
     private let pages: ChapterPages      // держит вёрстку главы, пока страница на экране
     private let textView: UITextView
+    private let pageStorage: NSTextStorage   // своя копия текста страницы: у каждой страницы отдельная вёрстка,
+                                             // иначе после перелистывания выделение текста работает через раз
     private let numberLabel = UILabel()
     private let insets: UIEdgeInsets
     private let pageSize: CGSize
@@ -20,7 +22,37 @@ final class PageViewController: UIViewController {
         self.pages = pages
         self.insets = insets
         self.pageSize = pageSize
-        textView = UITextView(frame: CGRect(origin: .zero, size: pageSize), textContainer: pages.containers[page])
+        let r = pages.ranges[min(page, pages.ranges.count - 1)]
+        let sub = NSMutableAttributedString(attributedString: pages.storage.attributedSubstring(from: r))
+        // страница начинается посреди абзаца — у первой строки не должно быть красной строки и отступа сверху
+        let chapterText = pages.storage.string as NSString
+        if r.location > 0, chapterText.character(at: r.location - 1) != 10, sub.length > 0 {
+            let firstPara = (sub.string as NSString).paragraphRange(for: NSRange(location: 0, length: 0))
+            sub.enumerateAttribute(.paragraphStyle, in: firstPara) { v, rr, _ in
+                guard let ps = (v as? NSParagraphStyle)?.mutableCopy() as? NSMutableParagraphStyle else { return }
+                ps.firstLineHeadIndent = ps.headIndent
+                ps.paragraphSpacingBefore = 0
+                sub.addAttribute(.paragraphStyle, value: ps, range: rr)
+            }
+        }
+        // слово переносится на следующую страницу — дефис в конце, как было в общей вёрстке
+        let end = NSMaxRange(r)
+        if end < chapterText.length, end > 0, sub.length > 0,
+           let a = UnicodeScalar(chapterText.character(at: end - 1)), CharacterSet.letters.contains(a),
+           let b = UnicodeScalar(chapterText.character(at: end)), CharacterSet.letters.contains(b) {
+            let attrs = sub.attributes(at: sub.length - 1, effectiveRange: nil)
+            sub.append(NSAttributedString(string: "-", attributes: attrs))
+        }
+        pageStorage = NSTextStorage(attributedString: sub)
+        let lm = NSLayoutManager()
+        lm.usesFontLeading = true
+        pageStorage.addLayoutManager(lm)
+        let container = NSTextContainer(size: CGSize(width: pageSize.width, height: pageSize.height + 400))
+        container.lineFragmentPadding = 0
+        lm.addTextContainer(container)
+        textView = UITextView(frame: CGRect(origin: .zero, size: CGSize(width: pageSize.width, height: pageSize.height + 400)),
+                              textContainer: container)
+        textView.tag = r.location        // начало страницы в главе — для «Выделить больше»
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = settings.theme.background
         if let img = settings.theme.image {
@@ -51,7 +83,7 @@ final class PageViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height)
+        textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height + 6)
         // номер страницы — у самого низа экрана, над полоской «домой»
         let safeBottom = view.window?.safeAreaInsets.bottom ?? view.safeAreaInsets.bottom
         let textBottom = insets.top + pageSize.height
@@ -489,7 +521,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let more = UIAction(title: "Выделить больше", image: UIImage(systemName: "text.append")) { [weak self] _ in
             guard let self, let p = self.chapters[self.current.chapter] else { return }
             textView.selectedRange = NSRange(location: 0, length: 0)
-            let vc = SelectionViewController(text: p.text.string, range: range, settings: self.settings, insets: self.insets) { [weak self] t in
+            let chapterRange = NSRange(location: range.location + textView.tag, length: range.length)
+            let vc = SelectionViewController(text: p.text.string, range: chapterRange, settings: self.settings, insets: self.insets) { [weak self] t in
                 guard let self else { return }
                 Store.shared.addQuote(t, book: self.book)
             } onShare: { [weak self] t, src in
