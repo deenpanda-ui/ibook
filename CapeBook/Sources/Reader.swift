@@ -485,36 +485,42 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let rapid = now.timeIntervalSince(lastSideTap) < 0.5
         lastSideTap = now
         if turning { pendingTurns += forward ? 1 : -1; return }  // тап во время анимации — запомнить и долистать сразу после
-        turn(forward: forward, animated: !rapid)
+        turn(forward: forward, fast: rapid)
     }
-    private func turn(forward: Bool, animated: Bool) {
+    /// Перелистнуть с анимацией; при быстрых тапах — та же анимация, только в 3 раза быстрее
+    private func turn(forward: Bool, fast: Bool) {
         guard let cur = pageVC.viewControllers?.first,
               let vc = (forward ? pageViewController(pageVC, viewControllerAfter: cur)
                                 : pageViewController(pageVC, viewControllerBefore: cur)) as? PageViewController
         else { pendingTurns = 0; return }
-        if animated {
-            turning = true
-            pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
-                DispatchQueue.main.async {
-                    self?.turning = false
-                    self?.flushPendingTurns()
+        turning = true
+        setCurlSpeed(fast ? 3 : 1)
+        pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.turning = false
+                if self.pendingTurns != 0 {
+                    let f = self.pendingTurns > 0
+                    self.pendingTurns += f ? -1 : 1
+                    self.turn(forward: f, fast: true)
+                } else {
+                    self.setCurlSpeed(1)
                 }
             }
-        } else {
-            pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: false)
         }
         current = (vc.chapter, vc.page)
         pageChanged()
     }
-    private func flushPendingTurns() {
-        var guardCount = 0
-        while pendingTurns != 0, guardCount < 200 {
-            guardCount += 1
-            let f = pendingTurns > 0
-            pendingTurns += f ? -1 : 1
-            turn(forward: f, animated: false)
-        }
+    /// Скорость анимации загиба страницы (меняется скорость времени у слоя перелистывания)
+    private func setCurlSpeed(_ speed: Float) {
+        let layer = pageVC.view.layer
+        guard layer.speed != speed else { return }
+        let now = layer.convertTime(CACurrentMediaTime(), from: nil)
+        layer.timeOffset = now
+        layer.beginTime = CACurrentMediaTime()
+        layer.speed = speed
     }
+
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
         g === sideTap || g === centerTapRecognizer              // свои тапы не мешают выделению; свайп — как обычно
     }
