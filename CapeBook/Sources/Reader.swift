@@ -85,6 +85,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private let timer: ReadingTimer
     private let sideTap = UITapGestureRecognizer()
     private var turning = false
+    private var sideTouchStart = Date()
 
     init(book: Book, content: BookContent) {
         self.book = book
@@ -368,16 +369,21 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         timer.activity(pageTurn: false)
         if touch.view is UIControl { return false }               // нажатие на кнопку — не перелистывание
         let x = touch.location(in: view).x
-        if g === sideTap { return x <= view.bounds.width * 0.3 || x >= view.bounds.width * 0.7 }
+        if g === sideTap {
+            sideTouchStart = Date()
+            return x <= view.bounds.width * 0.3 || x >= view.bounds.width * 0.7
+        }
         return x > view.bounds.width * 0.3 && x < view.bounds.width * 0.7
     }
     // тап-зоны: обычные — встроенные в перелистывание; поменянные — свои
     private func applyTapZones() {
-        let swap = settings.swapTapZones
-        for g in pageVC.gestureRecognizers where g is UITapGestureRecognizer { g.isEnabled = !swap }
-        sideTap.isEnabled = swap
+        // встроенные тапы перелистывания выключены всегда: свои различают короткий тап и долгое нажатие
+        for g in pageVC.gestureRecognizers where g is UITapGestureRecognizer { g.isEnabled = false }
+        sideTap.isEnabled = true
     }
     @objc private func sideTapped(_ g: UITapGestureRecognizer) {
+        // долгое нажатие (например, чтобы выделить текст) — не перелистывание
+        guard Date().timeIntervalSince(sideTouchStart) < 0.35 else { return }
         guard !turning, let cur = pageVC.viewControllers?.first else { return }
         let left = g.location(in: view).x < view.bounds.width / 2
         let forward = settings.swapTapZones ? left : !left
