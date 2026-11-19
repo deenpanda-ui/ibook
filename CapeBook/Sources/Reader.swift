@@ -81,6 +81,18 @@ final class PageViewController: UIViewController {
 
     func setNumber(_ s: String) { numberLabel.text = s }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // двойной тап по тексту не выделяет слово (выделение — долгим нажатием)
+        func off(_ v: UIView) {
+            for g in v.gestureRecognizers ?? [] {
+                if let t = g as? UITapGestureRecognizer, t.numberOfTapsRequired >= 2 { t.isEnabled = false }
+            }
+            v.subviews.forEach(off)
+        }
+        off(textView)
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height + 6)
@@ -412,6 +424,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     // MARK: касания
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         timer.activity(pageTurn: false)
+        if touch.phase == .began { lastTouchStart = Date() }
         if touch.view is UIControl { return false }               // нажатие на кнопку — не перелистывание
         if g is UIPanGestureRecognizer { panTouchStart = Date(); return true }
         let x = touch.location(in: view).x
@@ -423,6 +436,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         return x > view.bounds.width * 0.3 && x < view.bounds.width * 0.7
     }
     private var selectionStart = Date.distantPast
+    private var lastTouchStart = Date.distantPast
     /// Настоящее выделение: больше одного знака (случайный тап иногда «выделяет» одну букву)
     private var hasSelection: Bool { (selectingTextView?.selectedRange.length ?? 0) > 1 }
     /// Выделение появилось уже во время этого касания — значит, его сделал сам тап, а не вы раньше
@@ -439,6 +453,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     func textViewDidChangeSelection(_ textView: UITextView) {
         if textView.selectedRange.length > 0 {
             if selectingTextView == nil {
+                // новое выделение — только долгим нажатием; быстрые тапы (в т.ч. двойной) текст не выделяют
+                if Date().timeIntervalSince(lastTouchStart) < 0.4 {
+                    textView.selectedRange = NSRange(location: textView.selectedRange.location, length: 0)
+                    return
+                }
                 selectionStart = Date()
                 Diagnostics.log("выделение: \(textView.selectedRange.length) зн.")
             }
