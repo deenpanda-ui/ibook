@@ -67,6 +67,7 @@ struct ReaderSettings: Equatable {
     var lineSpacing: CGFloat
     var topInset: CGFloat
     var lockOrientation: Bool
+    var swapTapZones: Bool = false     // тап слева — вперёд, справа — назад
 
     static func load() -> ReaderSettings {
         let d = UserDefaults.standard
@@ -76,7 +77,8 @@ struct ReaderSettings: Equatable {
             theme: PaperTheme(rawValue: d.integer(forKey: "rs.theme")) ?? .light,
             lineSpacing: d.object(forKey: "rs.lineSpacing") as? CGFloat ?? 4,
             topInset: d.object(forKey: "rs.topInset") as? CGFloat ?? 20,
-            lockOrientation: d.bool(forKey: "rs.lockOrientation"))
+            lockOrientation: d.bool(forKey: "rs.lockOrientation"),
+            swapTapZones: d.bool(forKey: "rs.swapTapZones"))
     }
     func save() {
         let d = UserDefaults.standard
@@ -86,6 +88,7 @@ struct ReaderSettings: Equatable {
         d.set(lineSpacing, forKey: "rs.lineSpacing")
         d.set(topInset, forKey: "rs.topInset")
         d.set(lockOrientation, forKey: "rs.lockOrientation")
+        d.set(swapTapZones, forKey: "rs.swapTapZones")
     }
 }
 

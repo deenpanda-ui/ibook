@@ -179,6 +179,13 @@ struct ReaderSettingsView: View {
                     }
                     Toggle("Не поворачивать экран", isOn: $settings.lockOrientation)
                 }
+                Section {
+                    Toggle("Поменять тап-зоны", isOn: $settings.swapTapZones)
+                } footer: {
+                    Text(settings.swapTapZones
+                         ? "Тап по левому краю — следующая страница, по правому — предыдущая."
+                         : "Тап по правому краю — следующая страница, по левому — предыдущая.")
+                }
             }
             .navigationTitle("Оформление")
             .navigationBarTitleDisplayMode(.inline)

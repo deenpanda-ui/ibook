@@ -49,7 +49,9 @@ final class PageViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         textView.frame = CGRect(x: insets.left, y: insets.top, width: pageSize.width, height: pageSize.height)
-        numberLabel.frame = CGRect(x: 0, y: view.bounds.height - insets.bottom + 8, width: view.bounds.width, height: 18)
+        // номер страницы — у самого низа экрана, над полоской «домой»
+        let safeBottom = view.window?.safeAreaInsets.bottom ?? view.safeAreaInsets.bottom
+        numberLabel.frame = CGRect(x: 0, y: view.bounds.height - max(safeBottom, 12) * 0.5 - 22, width: view.bounds.width, height: 18)
     }
 }
 
@@ -70,6 +72,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private var bookmarkItem = UIBarButtonItem()
     private let slider = UISlider()
     private let timer: ReadingTimer
+    private let sideTap = UITapGestureRecognizer()
+    private var turning = false
 
     init(book: Book, content: BookContent) {
         self.book = book
@@ -97,6 +101,10 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let tap = UITapGestureRecognizer(target: self, action: #selector(centerTap(_:)))
         tap.delegate = self
         view.addGestureRecognizer(tap)
+        sideTap.addTarget(self, action: #selector(sideTapped(_:)))
+        sideTap.delegate = self
+        view.addGestureRecognizer(sideTap)
+        applyTapZones()
 
         title = book.title
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"),
@@ -285,7 +293,27 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         timer.activity(pageTurn: false)
         let x = touch.location(in: view).x
+        if g === sideTap { return x <= view.bounds.width * 0.3 || x >= view.bounds.width * 0.7 }
         return x > view.bounds.width * 0.3 && x < view.bounds.width * 0.7
+    }
+    // тап-зоны: обычные — встроенные в перелистывание; поменянные — свои
+    private func applyTapZones() {
+        let swap = settings.swapTapZones
+        for g in pageVC.gestureRecognizers where g is UITapGestureRecognizer { g.isEnabled = !swap }
+        sideTap.isEnabled = swap
+    }
+    @objc private func sideTapped(_ g: UITapGestureRecognizer) {
+        guard !turning, let cur = pageVC.viewControllers?.first else { return }
+        let left = g.location(in: view).x < view.bounds.width / 2
+        let forward = settings.swapTapZones ? left : !left
+        let next = forward ? pageViewController(pageVC, viewControllerAfter: cur) : pageViewController(pageVC, viewControllerBefore: cur)
+        guard let vc = next as? PageViewController else { return }
+        turning = true
+        pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
+            self?.turning = false
+        }
+        current = (vc.chapter, vc.page)
+        pageChanged()
     }
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
     @objc private func centerTap(_ g: UITapGestureRecognizer) {
@@ -371,6 +399,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             new.save()
             if needsLayout { self.relayout(goTo: self.current.chapter, offset: off) }
             self.applyOrientation()
+            self.applyTapZones()
         })
         if let sheet = host.sheetPresentationController { sheet.detents = [.medium()]; sheet.prefersGrabberVisible = true }
         present(host, animated: true)
