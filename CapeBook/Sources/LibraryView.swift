@@ -20,7 +20,7 @@ struct LibraryView: View {
                 if store.books.isEmpty {
                     ContentUnavailableView("Здесь появятся ваши книги",
                                            systemImage: "books.vertical",
-                                           description: Text("Нажмите «+» и выберите EPUB, FB2 или FB2.ZIP в «Файлах»."))
+                                           description: Text("В «Файлах» или мессенджере нажмите на книгу → «Поделиться» → CapeBook. Подходят EPUB, FB2 и FB2.ZIP."))
                         .padding(.top, 80)
                 }
                 LazyVGrid(columns: columns, spacing: 30) {
@@ -42,11 +42,6 @@ struct LibraryView: View {
                 .padding(.bottom, 40)
             }
             .navigationTitle("Библиотека")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { importing = true } label: { Image(systemName: "plus") }
-                }
-            }
             .fileImporter(isPresented: $importing, allowedContentTypes: types, allowsMultipleSelection: true) { result in
                 if case .success(let urls) = result { for u in urls { store.importBook(from: u) } }
             }
