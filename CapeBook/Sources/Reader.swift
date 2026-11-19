@@ -449,7 +449,23 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             let q = Quote(bookID: self.book.id, bookTitle: self.book.title, bookAuthor: self.book.author, text: text)
             self.share([q.signed], from: textView)
         }
-        return UIMenu(children: [quote, share])
+        let more = UIAction(title: "Выделить больше", image: UIImage(systemName: "text.append")) { [weak self] _ in
+            guard let self, let p = self.chapters[self.current.chapter] else { return }
+            textView.selectedRange = NSRange(location: 0, length: 0)
+            let vc = SelectionViewController(text: p.text.string, range: range, settings: self.settings, insets: self.insets) { [weak self] t in
+                guard let self else { return }
+                Store.shared.addQuote(t, book: self.book)
+            } onShare: { [weak self] t, src in
+                guard let self else { return }
+                let q = Quote(bookID: self.book.id, bookTitle: self.book.title, bookAuthor: self.book.author, text: t)
+                let avc = UIActivityViewController(activityItems: [q.signed], applicationActivities: nil)
+                avc.popoverPresentationController?.sourceView = src
+                src.window?.rootViewController?.topMost.present(avc, animated: true)
+            }
+            vc.modalPresentationStyle = .fullScreen
+            self.present(vc, animated: true)
+        }
+        return UIMenu(children: [quote, share, more])
     }
     private func share(_ items: [Any], from source: UIView) {
         let avc = UIActivityViewController(activityItems: items, applicationActivities: nil)
@@ -668,4 +684,142 @@ struct ReaderScreen: UIViewControllerRepresentable {
         return nav
     }
     func updateUIViewController(_ vc: UINavigationController, context: Context) {}
+}
+
+
+extension UIViewController {
+    var topMost: UIViewController { presentedViewController?.topMost ?? self }
+}
+
+// MARK: - «Выделить больше»: глава сплошной лентой — выделение тянется вниз, текст прокручивается сам
+
+final class SelectionViewController: UIViewController, UITextViewDelegate {
+    private let text: NSAttributedString
+    private let initial: NSRange
+    private let settings: ReaderSettings
+    private let pageInsets: UIEdgeInsets
+    private let onQuote: (String) -> Void
+    private let onShare: (String, UIView) -> Void
+    private let textView = UITextView()
+    private let hint = UILabel()
+    private var positioned = false
+    private var doneButton = UIButton(), quoteButton = UIButton(), shareButton = UIButton()
+
+    init(text: NSAttributedString, range: NSRange, settings: ReaderSettings, insets: UIEdgeInsets,
+         onQuote: @escaping (String) -> Void, onShare: @escaping (String, UIView) -> Void) {
+        self.text = text
+        self.initial = range
+        self.settings = settings
+        self.pageInsets = insets
+        self.onQuote = onQuote
+        self.onShare = onShare
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var prefersStatusBarHidden: Bool { true }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = settings.theme.background
+        if let img = settings.theme.image {
+            let bg = UIImageView(image: img)
+            bg.contentMode = .scaleToFill
+            bg.frame = view.bounds
+            bg.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.addSubview(bg)
+        }
+        // текст без служебных отметок вёрстки страниц
+        let m = NSMutableAttributedString(attributedString: text)
+        m.removeAttribute(.ikJustify, range: NSRange(location: 0, length: m.length))
+        textView.attributedText = m
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.backgroundColor = .clear
+        textView.tintColor = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)
+        textView.textContainer.lineFragmentPadding = 0
+        textView.delegate = self
+        textView.contentInsetAdjustmentBehavior = .never
+        view.addSubview(textView)
+
+        let tint = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)
+        func make(_ title: String?, _ symbol: String, _ action: Selector) -> UIButton {
+            var cfg = UIButton.Configuration.glass()
+            cfg.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold))
+            if let title { cfg.title = title; cfg.imagePadding = 6 }
+            cfg.baseForegroundColor = tint
+            cfg.cornerStyle = .capsule
+            let b = UIButton(configuration: cfg)
+            b.addTarget(self, action: action, for: .touchUpInside)
+            view.addSubview(b)
+            return b
+        }
+        doneButton = make(nil, "xmark", #selector(close))
+        quoteButton = make("В цитаты", "quote.opening", #selector(saveQuote))
+        shareButton = make(nil, "square.and.arrow.up", #selector(shareQuote))
+
+        hint.text = "Тяните ползунок выделения вниз — текст прокрутится сам"
+        hint.font = .systemFont(ofSize: 13, weight: .medium)
+        hint.textColor = settings.theme.text.withAlphaComponent(0.6)
+        hint.textAlignment = .center
+        hint.numberOfLines = 2
+        view.addSubview(hint)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let safe = view.safeAreaInsets
+        let w = view.bounds.width, h = view.bounds.height
+        let top = max(safe.top, 20) + 44, bottom = max(safe.bottom, 12) + 58
+        textView.frame = CGRect(x: 0, y: 0, width: w, height: h)
+        textView.textContainerInset = UIEdgeInsets(top: top, left: pageInsets.left, bottom: bottom, right: pageInsets.right)
+        let y = max(safe.top, 20) - 4
+        doneButton.frame = CGRect(x: 18, y: y, width: 40, height: 40)
+        hint.frame = CGRect(x: 70, y: y, width: w - 140, height: 40)
+        let by = h - max(safe.bottom, 12) - 46
+        shareButton.frame = CGRect(x: 18 + 12, y: by, width: 44, height: 44)
+        quoteButton.frame = CGRect(x: w - 18 - 150, y: by, width: 150, height: 44)
+        if !positioned, textView.bounds.width > 0 {
+            positioned = true
+            textView.layoutIfNeeded()
+            if let start = textView.position(from: textView.beginningOfDocument, offset: initial.location) {
+                let caret = textView.caretRect(for: start)
+                let maxY = max(0, textView.contentSize.height - textView.bounds.height)
+                textView.setContentOffset(CGPoint(x: 0, y: min(maxY, max(0, caret.minY - top - 40))), animated: false)
+            }
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        textView.becomeFirstResponder()
+        textView.selectedRange = initial
+    }
+
+    private var selectedText: String {
+        let r = textView.selectedRange
+        let s = textView.attributedText.string as NSString
+        guard r.location != NSNotFound, r.length > 0, NSMaxRange(r) <= s.length else { return "" }
+        return s.substring(with: r)
+    }
+    @objc private func close() { dismiss(animated: true) }
+    @objc private func saveQuote() {
+        let t = selectedText
+        guard !t.isEmpty else { return }
+        onQuote(t)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        dismiss(animated: true)
+    }
+    @objc private func shareQuote() {
+        let t = selectedText
+        guard !t.isEmpty else { return }
+        onShare(t, shareButton)
+    }
+
+    func textView(_ textView: UITextView, editMenuForTextIn range: NSRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
+        UIMenu(children: [
+            UIAction(title: "В цитаты", image: UIImage(systemName: "quote.opening")) { [weak self] _ in self?.saveQuote() },
+            UIAction(title: "Поделиться", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in self?.shareQuote() }
+        ])
+    }
 }
