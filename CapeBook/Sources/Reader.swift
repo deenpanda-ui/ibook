@@ -180,7 +180,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         applyTapZones()
 
         // кнопки — по бокам от Dynamic Island, вместо часов, батареи и сети
-        let tint = UIColor(white: 0.45, alpha: 1)          // серые значки
+        let tint = UIColor.black                            // чёрные значки
         func make(_ symbol: String, _ action: Selector) -> UIButton {
             var cfg = UIButton.Configuration.clearGlass()      // прозрачное стекло — страница видна сквозь кнопку
             cfg.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold))
