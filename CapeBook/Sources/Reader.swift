@@ -182,7 +182,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         // кнопки — по бокам от Dynamic Island, вместо часов, батареи и сети
         let tint = UIColor(red: 0.30, green: 0.66, blue: 0.36, alpha: 1)
         func make(_ symbol: String, _ action: Selector) -> UIButton {
-            var cfg = UIButton.Configuration.glass()
+            var cfg = UIButton.Configuration.clearGlass()      // прозрачное стекло — страница видна сквозь кнопку
             cfg.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold))
             cfg.baseForegroundColor = tint
             cfg.cornerStyle = .capsule
@@ -552,13 +552,24 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         guard Date().timeIntervalSince(centerTouchStart) < 0.35 else { return }   // долгое нажатие — это выделение
         if hasSelection && !selectionMadeBy(touchStart: centerTouchStart) { clearSelection(); return }
         clearSelection()
-        chromeHidden.toggle()
-        for b in chromeButtons { b.isUserInteractionEnabled = !chromeHidden }
-        UIView.animate(withDuration: 0.25) {
+        setChrome(hidden: !chromeHidden)
+    }
+    private var chromeHideWork: DispatchWorkItem?
+    /// Показать или спрятать кнопки; показанные — сами исчезают через 2 секунды
+    private func setChrome(hidden: Bool) {
+        chromeHideWork?.cancel()
+        chromeHidden = hidden
+        for b in chromeButtons { b.isUserInteractionEnabled = !hidden }
+        UIView.animate(withDuration: hidden ? 0.35 : 0.25) {
             for b in self.chromeButtons {
-                b.alpha = self.chromeHidden ? 0 : 1
-                b.transform = self.chromeHidden ? CGAffineTransform(scaleX: 0.85, y: 0.85) : .identity
+                b.alpha = hidden ? 0 : 1
+                b.transform = hidden ? CGAffineTransform(scaleX: 0.85, y: 0.85) : .identity
             }
+        }
+        if !hidden {
+            let work = DispatchWorkItem { [weak self] in self?.setChrome(hidden: true) }
+            chromeHideWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: work)
         }
     }
     /// Оглавление — слева сверху, «Аа» — справа сверху — на уровне Dynamic Island (там, где были время и батарея)
@@ -707,6 +718,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         present(host, animated: true)
     }
     @objc private func showToc() {
+        setChrome(hidden: true)
         let entries = content.toc.isEmpty
             ? (0..<content.chapterCount).map { TocEntry(title: "Глава \($0 + 1)", chapter: $0, anchor: nil, block: nil, level: 1) }
             : content.toc
