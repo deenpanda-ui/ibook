@@ -1,0 +1,411 @@
+Command line invocation:
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xcodebuild -project CapeBook.xcodeproj -scheme CapeBook -configuration Release -sdk iphoneos -destination generic/platform=iOS -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= build
+
+Build settings from command line:
+    CODE_SIGN_IDENTITY = 
+    CODE_SIGNING_ALLOWED = NO
+    CODE_SIGNING_REQUIRED = NO
+    SDKROOT = iphoneos26.2
+
+2026-11-20 12:42:26.505 xcodebuild[9746:29300] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+note: Using codesigning identity override: 
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'CapeBook' in project 'CapeBook' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/ibook/ibook/CapeBook/Resources/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: b8167dea246afd0ee32277a3cda51b0e
+Build description path: /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/XCBuildData/b8167dea246afd0ee32277a3cda51b0e.xcbuilddata
+CreateBuildDirectory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products
+
+ClangStatCache /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk /Users/runner/work/ibook/ibook/CapeBook/build/SDKStatCaches.noindex/iphoneos26.2-23C57-2dd23b4ebda140f7210d155ff1243552.sdkstatcache
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk -o /Users/runner/work/ibook/ibook/CapeBook/build/SDKStatCaches.noindex/iphoneos26.2-23C57-2dd23b4ebda140f7210d155ff1243552.sdkstatcache
+
+CreateBuildDirectory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex
+
+CreateBuildDirectory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos
+
+CreateBuildDirectory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook-bee9be52aae3d29ef4847dc0fa236bec-VFS-iphoneos/all-product-headers.yaml
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook-bee9be52aae3d29ef4847dc0fa236bec-VFS-iphoneos/all-product-headers.yaml
+
+CreateBuildDirectory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+    cd /Users/runner/work/ibook/ibook/CapeBook/CapeBook.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftFileList (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_const_extract_protocols.json (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftConstValuesFileList (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.LinkFileList (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-OutputFileMap.json (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.hmap (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyStaticMetadataFileList (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyMetadataFileList (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-project-headers.hmap (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-own-target-headers.hmap (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-generated-files.hmap (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-target-headers.hmap (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-non-framework-target-headers.hmap (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    write-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-non-framework-target-headers.hmap
+
+MkDir /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /bin/mkdir -p /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+MkDir /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/unthinned (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /bin/mkdir -p /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/unthinned
+
+MkDir /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /bin/mkdir -p /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/runner/work/ibook/ibook/CapeBook/Resources/Assets.xcassets (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/ibook/ibook/CapeBook/Resources/Assets.xcassets --compile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --minimum-deployment-target 26.0 --platform iphoneos --bundle-identifier com.kundiniste.capebook --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/paper_parchment.jpg /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_parchment.jpg (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_parchment.jpg /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/paper_olive.jpg /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_olive.jpg (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_olive.jpg /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/paper_night.jpg /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_night.jpg (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_night.jpg /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/paper_light.jpg /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_light.jpg (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_light.jpg /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/paper_cream.jpg /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_cream.jpg (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/paper_cream.jpg /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/chehov_razmaznya.epub /Users/runner/work/ibook/ibook/CapeBook/Resources/chehov_razmaznya.epub (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/chehov_razmaznya.epub /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Literata-Regular.ttf /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-Regular.ttf (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-Regular.ttf /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Literata-OFL.txt /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-OFL.txt (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-OFL.txt /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Literata-Italic.ttf /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-Italic.ttf (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-Italic.ttf /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Literata-BoldItalic.ttf /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-BoldItalic.ttf (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-BoldItalic.ttf /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CpResource /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Literata-Bold.ttf /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-Bold.ttf (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ibook/ibook/CapeBook/Resources/Fonts/Literata-Bold.ttf /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+CompileAssetCatalogVariant thinned /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app /Users/runner/work/ibook/ibook/CapeBook/Resources/Assets.xcassets (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/ibook/ibook/CapeBook/Resources/Assets.xcassets --compile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --minimum-deployment-target 26.0 --platform iphoneos
+/* com.apple.actool.compilation-results */
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver CapeBook normal arm64 com.apple.xcode.tools.swift.compiler (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-SwiftDriver -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name CapeBook -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk -target arm64-apple-ios26.0 -g -module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -F /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -c -num-threads 4 -Xcc -ivfsstatcache -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/SDKStatCaches.noindex/iphoneos26.2-23C57-2dd23b4ebda140f7210d155ff1243552.sdkstatcache -output-file-map /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-generated-files.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-own-target-headers.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-project-headers.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-Swift.h -working-directory /Users/runner/work/ibook/ibook/CapeBook -no-emit-module-separately-wmo
+
+SwiftDriver\ Compilation CapeBook normal arm64 com.apple.xcode.tools.swift.compiler (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-Swift-Compilation -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name CapeBook -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk -target arm64-apple-ios26.0 -g -module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -F /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -c -num-threads 4 -Xcc -ivfsstatcache -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/SDKStatCaches.noindex/iphoneos26.2-23C57-2dd23b4ebda140f7210d155ff1243552.sdkstatcache -output-file-map /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-generated-files.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-own-target-headers.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-project-headers.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-Swift.h -working-directory /Users/runner/work/ibook/ibook/CapeBook -no-emit-module-separately-wmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_SwiftConcurrencyShims-CQ26U9AF1JX0XIXAKNCMIZ98.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_AvailabilityInternal-EQ80UH8TRO999INLG6VJ7XCXG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/SwiftShims-3LIU7B2F1HZ1WFMEX1CI7TV2I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_float-EU13S1G2UZBJK1RCSU5OND8AT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/DeveloperToolsSupport-DIG4W7N1JPC5E8MMDY871UG7Y.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ptrcheck-446IYJZS2FY7T8M2BZP1GN2KR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ptrauth-CBR2GJUT01LL9BVAF9YJO6834.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdarg-B7N72HMVVYY9G5Y7FDFCBPH3R.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stddef-E6QPPPY5FAEI9ZBLK5XJ3A51.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_DarwinFoundation1-EYFOL4TLHD0JA0H2VED029SNY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdbool-9420JB8FNWBJA4N1FWHA6FQY0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_limits-7VU6YQ3FUEKTFTRDRFHQ3ANWY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_DarwinFoundation2-BSFI2IRR6PVINFBNRSF2KKNIY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdint-1XXMJXLC5RH3XL1E69Q8WOSP6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/sys_types-AZF1G5ZF4OVNPL34JKDD4IIJ2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_tgmath-78I7AB720WC4Q8X3AKXVBZFW7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdatomic-2NETUFCI5D3NC5FA3BO2K57GT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_DarwinFoundation3-16MPN7VBYI5UJ5LRM2IHJA0QY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_intrinsics-4D7ATUM2NV5YAYWD92ML5NYIU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_inttypes-F1X9IXT8SAUBSPKHRY5CSEH4D.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Darwin-EMYE1HFBUNOSDZ42TS5BZONQJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/simd-DQ0IKFVXE9OAG05YZOCC3A79.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ObjectiveC-9GP07HU9KCAYL2O9OWTKDS5QJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Compression-6EY6Q56EA8BZRDO3NP6C7G6MN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/MachO-1KMNRBGGZG6CBVRXH8H6W6YYX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/os_object-E7S7OZ37W6O5R6QSADLAB45I3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/os_workgroup-4BVGVEUJZDAO1JL7R2OY5W0F5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Dispatch-7N122HW1KIMO70PP6NKGAG6MV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/XPC-7T719QFI5X30NSRV73GIM9V5S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreFoundation-327IFNWXMRDYXAEP8PL68JSJH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/os-7DBT1NGBD33LDFJM79IJEXPX9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Spatial-4MYCC9C1UGWRNLNDBRGZGRF5J.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CFNetwork-5NNF9F1WX1L9XEZRMNYV5XOL7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreGraphics-4OKP4VIW2AKD67E84ZU7SH1H3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Security-9K4B42978X9GP4P0X3SLN7VIR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreText-7GM3N71DFQMVTTEJX4U7QGSUV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ImageIO-9V5VY7LN7CVMLPTC50OMHEX2C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Foundation-AI8UKLSO2SG2A9W7EQ7EF0INM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Symbols-1PV9B1SSIVAMRHGDWJ59WJNY6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Accessibility-2I5FKYLMIZSSOBSWPZ9W9IN2X.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UIUtilities-BRJ90RACCGD4NYFQOIU2PIK4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/DataDetection-BNL376N3Y4ZEKP1H3F3XKU1ZS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreTransferable-APD5C8Y1P34ZPDIUJ212ELIHQ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/IOSurface-170BM243FG1ZW7C7DYDRFCP27.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/OSLog-3M3E0FRW4D07STNMXA2N5VYG6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/FileProvider-96CX32ML00OL6XTFNR950MT7M.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_LocationEssentials-9MCZ4JIVZT4EBOH0965MT9RR9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Metal-9SK7BHX2GWJSWJIAU2CI6LOER.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/OpenGLES-ALRW9KJSMHI4OTK12DBF42KHI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreLocation-BXNRVLSALHW74KU3PZYIW5LUS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UserNotifications-4PIAOM0ENB518CFX75ID7LSMX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreMotion-2KU2REYA1UFUIOGP3AI2B819K.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreData-BQZYCUYW3EAUU5YLBLRBGHANT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UniformTypeIdentifiers-10T1YFXTAZ3L97CQ7GWWOMTM6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreVideo-EBSF4I1CT8ZF89P9XFZ2RRL9H.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/QuartzCore-3X8WHYVRJDHJRWQB03UDZJBU8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreImage-AE7NUCRQ9K3U88VN96RBYL9NJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/SwiftUICore-EJ5I9O5I238J1O7DZ9XYB18JH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UIKit-14VTHVCHEIH0CJKJDW39BCI54.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/SwiftUI-9D57M61PIEPYHJ013WBKNWL9P.pcm
+
+SwiftCompile normal arm64 Compiling\ App.swift,\ BookParser.swift,\ Diagnostics.swift,\ LibraryView.swift,\ Models.swift,\ QuotesView.swift,\ Reader.swift,\ ReaderSheets.swift,\ StatsView.swift,\ Typesetter.swift,\ XMLTree.swift,\ Zip.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/App.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/BookParser.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/Diagnostics.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/LibraryView.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/Models.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/QuotesView.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/Reader.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/ReaderSheets.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/StatsView.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/Typesetter.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/XMLTree.swift /Users/runner/work/ibook/ibook/CapeBook/Sources/Zip.swift /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/GeneratedAssetSymbols.swift /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/UIKit.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreVideo.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/XPC.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreData.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreMotion.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/_DarwinFoundation2.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreImage.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/_DarwinFoundation1.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/SwiftUI.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Darwin.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/System.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Observation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Symbols.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreGraphics.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/QuartzCore.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Spatial.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreLocation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Foundation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreFoundation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/UniformTypeIdentifiers.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreTransferable.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/OSLog.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/_Concurrency.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/_StringProcessing.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Dispatch.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Swift.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/DeveloperToolsSupport.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/ObjectiveC.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Accessibility.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/_DarwinFoundation3.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Metal.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/SwiftUICore.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/simd.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Compression.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/CoreText.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/os.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/FileProvider.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/Combine.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/DataDetection.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.2/_Builtin_float.swiftmodule/arm64e-apple-ios.swiftmodule /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Compression-6EY6Q56EA8BZRDO3NP6C7G6MN.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Security-9K4B42978X9GP4P0X3SLN7VIR.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Metal-9SK7BHX2GWJSWJIAU2CI6LOER.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_LocationEssentials-9MCZ4JIVZT4EBOH0965MT9RR9.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Darwin-EMYE1HFBUNOSDZ42TS5BZONQJ.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/QuartzCore-3X8WHYVRJDHJRWQB03UDZJBU8.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdbool-9420JB8FNWBJA4N1FWHA6FQY0.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_tgmath-78I7AB720WC4Q8X3AKXVBZFW7.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UniformTypeIdentifiers-10T1YFXTAZ3L97CQ7GWWOMTM6.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdint-1XXMJXLC5RH3XL1E69Q8WOSP6.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ObjectiveC-9GP07HU9KCAYL2O9OWTKDS5QJ.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/MachO-1KMNRBGGZG6CBVRXH8H6W6YYX.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stddef-E6QPPPY5FAEI9ZBLK5XJ3A51.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UIUtilities-BRJ90RACCGD4NYFQOIU2PIK4.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreTransferable-APD5C8Y1P34ZPDIUJ212ELIHQ.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ptrauth-CBR2GJUT01LL9BVAF9YJO6834.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Spatial-4MYCC9C1UGWRNLNDBRGZGRF5J.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/SwiftUICore-EJ5I9O5I238J1O7DZ9XYB18JH.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_DarwinFoundation3-16MPN7VBYI5UJ5LRM2IHJA0QY.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ImageIO-9V5VY7LN7CVMLPTC50OMHEX2C.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/os-7DBT1NGBD33LDFJM79IJEXPX9.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Foundation-AI8UKLSO2SG2A9W7EQ7EF0INM.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/DataDetection-BNL376N3Y4ZEKP1H3F3XKU1ZS.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/sys_types-AZF1G5ZF4OVNPL34JKDD4IIJ2.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_AvailabilityInternal-EQ80UH8TRO999INLG6VJ7XCXG.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_DarwinFoundation1-EYFOL4TLHD0JA0H2VED029SNY.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/SwiftShims-3LIU7B2F1HZ1WFMEX1CI7TV2I.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreVideo-EBSF4I1CT8ZF89P9XFZ2RRL9H.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreFoundation-327IFNWXMRDYXAEP8PL68JSJH.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Symbols-1PV9B1SSIVAMRHGDWJ59WJNY6.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdatomic-2NETUFCI5D3NC5FA3BO2K57GT.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/os_object-E7S7OZ37W6O5R6QSADLAB45I3.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UIKit-14VTHVCHEIH0CJKJDW39BCI54.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreImage-AE7NUCRQ9K3U88VN96RBYL9NJ.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreGraphics-4OKP4VIW2AKD67E84ZU7SH1H3.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/simd-DQ0IKFVXE9OAG05YZOCC3A79.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_stdarg-B7N72HMVVYY9G5Y7FDFCBPH3R.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_float-EU13S1G2UZBJK1RCSU5OND8AT.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_limits-7VU6YQ3FUEKTFTRDRFHQ3ANWY.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/IOSurface-170BM243FG1ZW7C7DYDRFCP27.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/DeveloperToolsSupport-DIG4W7N1JPC5E8MMDY871UG7Y.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/os_workgroup-4BVGVEUJZDAO1JL7R2OY5W0F5.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_inttypes-F1X9IXT8SAUBSPKHRY5CSEH4D.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_SwiftConcurrencyShims-CQ26U9AF1JX0XIXAKNCMIZ98.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreLocation-BXNRVLSALHW74KU3PZYIW5LUS.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/OSLog-3M3E0FRW4D07STNMXA2N5VYG6.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/XPC-7T719QFI5X30NSRV73GIM9V5S.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Accessibility-2I5FKYLMIZSSOBSWPZ9W9IN2X.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_DarwinFoundation2-BSFI2IRR6PVINFBNRSF2KKNIY.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/_Builtin_intrinsics-4D7ATUM2NV5YAYWD92ML5NYIU.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/FileProvider-96CX32ML00OL6XTFNR950MT7M.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreText-7GM3N71DFQMVTTEJX4U7QGSUV.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Dispatch-7N122HW1KIMO70PP6NKGAG6MV.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CFNetwork-5NNF9F1WX1L9XEZRMNYV5XOL7.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/OpenGLES-ALRW9KJSMHI4OTK12DBF42KHI.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/SwiftUI-9D57M61PIEPYHJ013WBKNWL9P.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreMotion-2KU2REYA1UFUIOGP3AI2B819K.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/ptrcheck-446IYJZS2FY7T8M2BZP1GN2KR.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/CoreData-BQZYCUYW3EAUU5YLBLRBGHANT.pcm /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/UserNotifications-4PIAOM0ENB518CFX75ID7LSMX.pcm /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-dependencies-1.json (in target 'CapeBook' from project 'CapeBook')
+
+CompileSwift normal arm64 (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling App.swift, BookParser.swift, Diagnostics.swift, LibraryView.swift, Models.swift, QuotesView.swift, Reader.swift, ReaderSheets.swift, StatsView.swift, Typesetter.swift, XMLTree.swift, Zip.swift, GeneratedAssetSymbols.swift (in target 'CapeBook' from project 'CapeBook')
+
+SwiftDriver\ Compilation\ Requirements CapeBook normal arm64 com.apple.xcode.tools.swift.compiler (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name CapeBook -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk -target arm64-apple-ios26.0 -g -module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -F /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -c -num-threads 4 -Xcc -ivfsstatcache -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/SDKStatCaches.noindex/iphoneos26.2-23C57-2dd23b4ebda140f7210d155ff1243552.sdkstatcache -output-file-map /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/ibook/ibook/CapeBook/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-generated-files.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-own-target-headers.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook-project-headers.hmap -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-Swift.h -working-directory /Users/runner/work/ibook/ibook/CapeBook -no-emit-module-separately-wmo
+
+SwiftMergeGeneratedHeaders /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/CapeBook-Swift.h /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-Swift.h (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-Swift.h -o /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/DerivedSources/CapeBook-Swift.h
+
+Copy /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/arm64-apple-ios.swiftmodule /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftmodule (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftmodule /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/arm64-apple-ios.swiftmodule
+
+Copy /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/arm64-apple-ios.swiftdoc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftdoc (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftdoc /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/arm64-apple-ios.swiftdoc
+
+Copy /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/arm64-apple-ios.abi.json /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.abi.json (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.abi.json /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/arm64-apple-ios.abi.json
+
+Copy /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/Project/arm64-apple-ios.swiftsourceinfo /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftsourceinfo (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftsourceinfo /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.swiftmodule/Project/arm64-apple-ios.swiftsourceinfo
+
+Ld /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/CapeBook normal (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0 -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk -Os -L/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos -L/Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -F/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos -F/Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos -filelist /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.LinkFileList -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_lto.o -Xlinker -dependency_info -Xlinker /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.swiftmodule @/Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook-linker-args.resp -o /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/CapeBook
+
+LinkAssetCatalog /Users/runner/work/ibook/ibook/CapeBook/Resources/Assets.xcassets (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-linkAssetCatalog --thinned /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app --plist-output /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Assets.car (in target 'CapeBook' from project 'CapeBook')
+note: Emplaced /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/AppIcon76x76@2x~ipad.png (in target 'CapeBook' from project 'CapeBook')
+note: Emplaced /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/AppIcon60x60@2x.png (in target 'CapeBook' from project 'CapeBook')
+
+ProcessInfoPlistFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Info.plist /Users/runner/work/ibook/ibook/CapeBook/Info.plist (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-infoPlistUtility /Users/runner/work/ibook/ibook/CapeBook/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -additionalcontentfile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/assetcatalog_generated_info.plist -requiredArchitecture arm64 -o /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Info.plist
+
+ExtractAppIntentsMetadata (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name CapeBook --sdk-root /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk --xcode-version 17C529 --platform-family iOS --deployment-target 26.0 --bundle-identifier com.kundiniste.capebook --output /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app --target-triple arm64-apple-ios26.0 --binary-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/CapeBook --dependency-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook_dependency_info.dat --stringsdata-file /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftFileList --metadata-file-list /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/Objects-normal/arm64/CapeBook.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-11-20 12:43:30.276 appintentsmetadataprocessor[11041:33189] Starting appintentsmetadataprocessor export
+2026-11-20 12:43:30.285 appintentsmetadataprocessor[11041:33189] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/CapeBook --scan-folder /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Frameworks --scan-folder /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/PlugIns --scan-folder /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/SystemExtensions --scan-folder /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Extensions --platform iphoneos --toolchain /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+GenerateDSYMFile /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app.dSYM /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/CapeBook (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/CapeBook -o /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app.dSYM
+
+AppIntentsSSUTraining (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Info.plist --temp-dir-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/ssu --bundle-id com.kundiniste.capebook --product-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app --extracted-metadata-path /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app/Metadata.appintents --metadata-file-list /Users/runner/work/ibook/ibook/CapeBook/build/Build/Intermediates.noindex/CapeBook.build/Release-iphoneos/CapeBook.build/CapeBook.DependencyMetadataFileList --archive-ssu-assets
+2026-11-20 12:43:30.362 appintentsnltrainingprocessor[11050:33211] Parsing options for appintentsnltrainingprocessor
+2026-11-20 12:43:30.365 appintentsnltrainingprocessor[11050:33211] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-RegisterExecutionPolicyException /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+Validate /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    builtin-validationUtility /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app (in target 'CapeBook' from project 'CapeBook')
+    cd /Users/runner/work/ibook/ibook/CapeBook
+    /usr/bin/touch -c /Users/runner/work/ibook/ibook/CapeBook/build/Build/Products/Release-iphoneos/CapeBook.app
+
+** BUILD SUCCEEDED **
+
