@@ -15,7 +15,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.kundiniste.capebook
         PRODUCT_NAME: CapeBook
         MARKETING_VERSION: "2.4.0"
-        CURRENT_PROJECT_VERSION: "40"
+        CURRENT_PROJECT_VERSION: "41"
         INFOPLIST_FILE: Info.plist
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"

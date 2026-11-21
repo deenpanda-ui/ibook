@@ -245,16 +245,16 @@ enum ReadingSpeed {
     /// Замер по отрезкам: знаков в минуту и сколько минут чтения учтено.
     /// Отрезки короче 30 с и с нереальной скоростью (перемотка, прыжки ползунком) не считаются.
     static func measure(_ sessions: [ReadingSession], book: UUID? = nil) -> (cpm: Double, minutes: Double, count: Int) {
-        var chars = 0.0, secs = 0.0, n = 0
+        var sum = 0.0, secs = 0.0, n = 0
         for s in sessions where book == nil || s.bookID == book {
             guard s.seconds >= 30, let f = s.progressFrom, let t = s.progressTo, t > f,
-                  let total = chars(s.bookID) else { continue }
+                  let total = Self.chars(s.bookID) else { continue }
             let c = (t - f) * Double(total)
             let cpm = c / (Double(s.seconds) / 60)
             guard cpm >= 150, cpm <= 5000 else { continue }
-            chars += c; secs += Double(s.seconds); n += 1
+            sum += c; secs += Double(s.seconds); n += 1
         }
-        return secs > 0 ? (chars / (secs / 60), secs / 60, n) : (0, 0, 0)
+        return secs > 0 ? (sum / (secs / 60), secs / 60, n) : (0, 0, 0)
     }
 
     /// Ваша скорость для этой книги: общая (плавно уходит от средней по мере накопления данных),
