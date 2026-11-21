@@ -214,6 +214,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         timer.start()
         applyOrientation()
         Diagnostics.log("книга открыта: \(book.title)")
+        let m = ReadingSpeed.measure(Store.shared.sessions)
+        Diagnostics.log(String(format: "скорость: %.0f зн/мин по %d отрезкам (%.0f мин)", m.cpm, m.count, m.minutes))
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -294,7 +296,27 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         return pageCounts.reduce(0) { $0 + ($1 ?? 0) }
     }
     /// Посчитать страницы всех глав — по одной главе за раз, не мешая листать; результат запоминается
+    /// Объём книги в знаках — один раз, по главам в паузах чтения
+    private func startCharCounting() {
+        guard ReadingSpeed.chars(book.id) == nil else { return }
+        countChars(from: 0, acc: 0)
+    }
+    private func countChars(from c: Int, acc: Int) {
+        guard c < content.chapterCount else {
+            ReadingSpeed.setChars(book.id, max(1, acc))
+            Diagnostics.log("объём книги: \(acc) зн.")
+            return
+        }
+        if turning || Date().timeIntervalSince(lastTouchStart) < 1.2 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.countChars(from: c, acc: acc) }
+            return
+        }
+        let n = chapters[c]?.text.string.length ?? content.blocks(chapter: c).reduce(0) { $0 + $1.plainText.count + 1 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in self?.countChars(from: c + 1, acc: acc + n) }
+    }
+
     private func startCounting() {
+        startCharCounting()
         let s = settings, size = pageSize
         let key = "pc.\(book.id.uuidString).\(s.fontFamily).\(s.fontSize).\(s.lineSpacing).\(s.hyphenate).\(Int(size.width))x\(Int(size.height)).v2"
         countingKey = key
@@ -741,6 +763,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
             },
             progress: book.progress,
             liveSeconds: timer.currentSeconds,
+            totalPages: totalPages(),
+            chapterLeftChars: {
+                guard let p = self.chapters[self.current.chapter], self.current.page < p.ranges.count else { return nil }
+                return max(0, p.text.string.length - NSMaxRange(p.ranges[self.current.page]))
+            }(),
             placeLabel: { [weak self] v in
                 guard let self else { return "" }
                 let c = min(max(0, self.content.chapterCount - 1), Int(v * Double(max(1, self.content.chapterCount))))

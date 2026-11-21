@@ -11,6 +11,8 @@ struct TocView: View {
     var onSettings: () -> Void = {}
     var progress: Double = 0
     var liveSeconds: Int = 0                       // ещё не сохранённое время текущего чтения
+    var totalPages: Int? = nil
+    var chapterLeftChars: Int? = nil
     var placeLabel: (Double) -> String = { _ in "" }
     var onSeek: (Double) -> Void = { _ in }
     @EnvironmentObject var store: Store
@@ -86,11 +88,39 @@ struct TocView: View {
                 if days > 0 { LabeledContent("Дней с книгой", value: "\(days)") }
                 if pagesRead > 0 { LabeledContent("Перевёрнуто страниц", value: "\(pagesRead)") }
                 if let first { LabeledContent("Начато", value: first.formatted(.dateTime.day().month().year())) }
-                if value > 0.02 && value < 1 && total > 120 {
-                    let left = Double(total) / value * (1 - value)
-                    LabeledContent("Осталось примерно", value: Self.duration(Int(left)))
-                }
             }
+            estimateSection(progress: value)
+        }
+    }
+
+    /// Оценка по вашей скорости чтения
+    @ViewBuilder private func estimateSection(progress value: Double) -> some View {
+        let est = ReadingSpeed.estimate(book: bookID, sessions: store.sessions)
+        Section {
+            if let chars = ReadingSpeed.chars(bookID) {
+                let fullSec = Int(Double(chars) / est.cpm * 60)
+                let leftSec = Int(Double(chars) * max(0, 1 - value) / est.cpm * 60)
+                LabeledContent("Вся книга", value: "≈ " + Self.duration(fullSec))
+                if value < 1 { LabeledContent("Осталось", value: "≈ " + Self.duration(leftSec)) }
+                if let ch = chapterLeftChars, ch > 0 {
+                    LabeledContent("До конца главы", value: "≈ " + Self.duration(max(60, Int(Double(ch) / est.cpm * 60))))
+                }
+                if let pages = totalPages, pages > 0 {
+                    let ppm = est.cpm / (Double(chars) / Double(pages))
+                    LabeledContent("Ваша скорость", value: String(format: "%.0f зн/мин · %.1f стр/мин", est.cpm, ppm))
+                } else {
+                    LabeledContent("Ваша скорость", value: String(format: "%.0f зн/мин", est.cpm))
+                }
+            } else {
+                Text("Считаю объём книги… Оценка появится через несколько секунд — закройте и снова откройте это меню.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Оценка по вашей скорости")
+        } footer: {
+            Text(est.measuredMinutes < 15
+                 ? "Пока данных мало — оценка близка к средней скорости и будет уточняться, пока вы читаете в своём обычном темпе."
+                 : String(format: "Учтено %.0f мин вашего чтения. Пролистывания и прыжки по ползунку не считаются.", est.measuredMinutes))
         }
     }
 

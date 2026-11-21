@@ -227,3 +227,43 @@ final class Store: ObservableObject {
     }
     func resetStats() { sessions = []; saveSessions() }
 }
+
+
+// MARK: - Скорость чтения: считается по вашим отрезкам чтения
+
+enum ReadingSpeed {
+    /// средняя скорость взрослого читателя — пока ваших данных мало
+    static let defaultCPM = 1000.0
+
+    /// Объём книги в знаках (считается один раз при открытии книги)
+    static func chars(_ id: UUID) -> Int? {
+        let v = UserDefaults.standard.integer(forKey: "chars." + id.uuidString)
+        return v > 0 ? v : nil
+    }
+    static func setChars(_ id: UUID, _ n: Int) { UserDefaults.standard.set(n, forKey: "chars." + id.uuidString) }
+
+    /// Замер по отрезкам: знаков в минуту и сколько минут чтения учтено.
+    /// Отрезки короче 30 с и с нереальной скоростью (перемотка, прыжки ползунком) не считаются.
+    static func measure(_ sessions: [ReadingSession], book: UUID? = nil) -> (cpm: Double, minutes: Double, count: Int) {
+        var chars = 0.0, secs = 0.0, n = 0
+        for s in sessions where book == nil || s.bookID == book {
+            guard s.seconds >= 30, let f = s.progressFrom, let t = s.progressTo, t > f,
+                  let total = chars(s.bookID) else { continue }
+            let c = (t - f) * Double(total)
+            let cpm = c / (Double(s.seconds) / 60)
+            guard cpm >= 150, cpm <= 5000 else { continue }
+            chars += c; secs += Double(s.seconds); n += 1
+        }
+        return secs > 0 ? (chars / (secs / 60), secs / 60, n) : (0, 0, 0)
+    }
+
+    /// Ваша скорость для этой книги: общая (плавно уходит от средней по мере накопления данных),
+    /// а если эту книгу читали больше 10 минут — с учётом темпа именно в ней
+    static func estimate(book: UUID, sessions: [ReadingSession]) -> (cpm: Double, measuredMinutes: Double) {
+        let all = measure(sessions)
+        var cpm = (all.cpm * all.minutes + defaultCPM * 10) / (all.minutes + 10)
+        let mine = measure(sessions, book: book)
+        if mine.minutes >= 10 { cpm = (cpm + mine.cpm * 2) / 3 }
+        return (cpm, all.minutes)
+    }
+}
