@@ -30,6 +30,13 @@
 	</array>
 	<key>LSSupportsOpeningDocumentsInPlace</key><false/>
 	<key>UIFileSharingEnabled</key><true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key><string>com.kundiniste.capebook</string>
+			<key>CFBundleURLSchemes</key><array><string>capebook</string></array>
+		</dict>
+	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

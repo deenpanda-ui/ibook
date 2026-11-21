@@ -95,6 +95,7 @@ final class Store: ObservableObject {
     // навигация: открытая вкладка и фильтр цитат (для «Цитаты из книги»)
     @Published var tab = 0
     @Published var quotesFilter: UUID?
+    @Published var continueRequest: UUID?   // виджет попросил открыть последнюю книгу
 
     private let booksURL = Paths.support.appendingPathComponent("books.json")
     private let quotesURL = Paths.support.appendingPathComponent("quotes.json")

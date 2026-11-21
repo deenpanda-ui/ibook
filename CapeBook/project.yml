@@ -10,15 +10,36 @@ targets:
     sources:
       - path: Sources
       - path: Resources
+    dependencies:
+      - target: CapeBookWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kundiniste.capebook
         PRODUCT_NAME: CapeBook
-        MARKETING_VERSION: "2.4.1"
-        CURRENT_PROJECT_VERSION: "42"
+        MARKETING_VERSION: "2.5.0"
+        CURRENT_PROJECT_VERSION: "43"
         INFOPLIST_FILE: Info.plist
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: NO
+        CODE_SIGNING_ALLOWED: NO
+  CapeBookWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kundiniste.capebook.widget
+        PRODUCT_NAME: CapeBookWidget
+        MARKETING_VERSION: "2.5.0"
+        CURRENT_PROJECT_VERSION: "43"
+        INFOPLIST_FILE: Widget/Info.plist
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
         CODE_SIGNING_ALLOWED: NO

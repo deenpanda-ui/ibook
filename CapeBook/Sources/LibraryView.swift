@@ -56,6 +56,12 @@ struct LibraryView: View {
             }
             .navigationTitle("Библиотека")
             .animation(.default, value: ordered.map(\.id))
+            .onChange(of: store.continueRequest) { _, _ in
+                // с виджета: открыть книгу, которую читали последней (если она ещё не открыта)
+                guard reading == nil, let last = ordered.first, last.lastOpenedAt != nil else { return }
+                Self.autoOpened = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { reading = last }
+            }
             .onAppear {
                 guard !Self.autoOpened else { return }
                 Self.autoOpened = true

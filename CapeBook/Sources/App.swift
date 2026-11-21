@@ -11,7 +11,14 @@ struct CapeBookApp: App {
             RootView()
                 .environmentObject(store)
                 .preferredColorScheme(.dark)
-                .onOpenURL { url in store.importBook(from: url) }   // «Открыть в CapeBook» из «Файлов» и мессенджеров
+                .onOpenURL { url in
+                    if url.scheme == "capebook" {                     // виджет «Продолжить чтение»
+                        store.tab = 0
+                        store.continueRequest = UUID()
+                    } else {
+                        store.importBook(from: url)                   // «Открыть в CapeBook» из «Файлов» и мессенджеров
+                    }
+                }
                 .onAppear { store.addDefaultBookIfNeeded() }
         }
     }
