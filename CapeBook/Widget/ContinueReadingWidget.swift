@@ -28,13 +28,13 @@ struct ContinueView: View {
             }
             .widgetAccentable()
         case .accessoryInline:
-            Label("Продолжить чтение", systemImage: "book.fill")
+            Label("Read", systemImage: "book.fill")
         default:
             HStack(spacing: 8) {
                 Image(systemName: "book.fill").font(.title2).widgetAccentable()
                 VStack(alignment: .leading, spacing: 1) {
                     Text("CapeBook").font(.headline).widgetAccentable()
-                    Text("Продолжить чтение").font(.caption)
+                    Text("Read").font(.caption)
                 }
                 Spacer(minLength: 0)
             }
