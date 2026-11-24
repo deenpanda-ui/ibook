@@ -17,8 +17,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kundiniste.capebook
         PRODUCT_NAME: CapeBook
-        MARKETING_VERSION: "2.5.0"
-        CURRENT_PROJECT_VERSION: "43"
+        MARKETING_VERSION: "2.5.1"
+        CURRENT_PROJECT_VERSION: "44"
         INFOPLIST_FILE: Info.plist
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"
@@ -36,8 +36,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kundiniste.capebook.widget
         PRODUCT_NAME: CapeBookWidget
-        MARKETING_VERSION: "2.5.0"
-        CURRENT_PROJECT_VERSION: "43"
+        MARKETING_VERSION: "2.5.1"
+        CURRENT_PROJECT_VERSION: "44"
         INFOPLIST_FILE: Widget/Info.plist
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"

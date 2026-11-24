@@ -131,6 +131,8 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     private let sideTap = UITapGestureRecognizer()
     private var turning = false
     private var pendingTurns = 0
+    private var turnStarted = Date.distantPast
+    private var userCurling = false                       // страницу сейчас тянут пальцем
     private var lastSideTap = Date.distantPast
     private var sideTouchStart = Date()
     private var centerTouchStart = Date()
@@ -237,7 +239,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         OrientationLock.set(mask, from: view.window)
     }
     @objc private func appBackground() { timer.pause(progress: book.progress); savePosition() }
-    @objc private func appForeground() { timer.resume() }
+    @objc private func appForeground() {
+        timer.resume()
+        resetTurning()          // после сворачивания анимация могла оборваться без сигнала
+        userCurling = false
+    }
 
     override var prefersStatusBarHidden: Bool { true }      // в чтении часы, батарея и сеть не показываются
     override var prefersHomeIndicatorAutoHidden: Bool { true }
@@ -444,8 +450,12 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         if v.chapter > 0 { let prev = pages(v.chapter - 1); return pageController(v.chapter - 1, prev.count - 1) }
         return nil
     }
+    func pageViewController(_ pvc: UIPageViewController, willTransitionTo pending: [UIViewController]) {
+        userCurling = true
+    }
     func pageViewController(_ pvc: UIPageViewController, didFinishAnimating finished: Bool,
                             previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        userCurling = false
         guard completed, let v = pvc.viewControllers?.first as? PageViewController else { return }
         current = (v.chapter, v.page)
         pageChanged()
@@ -519,8 +529,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
     }
     @objc private func sideTapped(_ g: UITapGestureRecognizer) {
         // долгое нажатие (например, чтобы выделить текст) — не перелистывание
-        guard Date().timeIntervalSince(sideTouchStart) < 0.35 else { return }
-        if hasSelection && !selectionMadeBy(touchStart: sideTouchStart) { clearSelection(); return }   // тап при выделении — снять его
+        guard Date().timeIntervalSince(sideTouchStart) < 0.5 else { return }
+        if hasSelection && !selectionMadeBy(touchStart: sideTouchStart) {     // тап при выделении — снять его
+            Diagnostics.log("тап: снято выделение, страница не листается")
+            clearSelection(); return
+        }
         clearSelection()
         let left = g.location(in: view).x < view.bounds.width / 2
         let forward = settings.swapTapZones ? left : !left
@@ -528,7 +541,19 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         let now = Date()
         let rapid = now.timeIntervalSince(lastSideTap) < 0.45
         lastSideTap = now
-        if turning { pendingTurns += forward ? 1 : -1; return }  // тап во время анимации — запомнить и долистать сразу после
+        // анимация «зависла» (iOS не сообщила о её конце) — сбросить, чтобы тапы снова работали
+        if turning && now.timeIntervalSince(turnStarted) > 1.5 {
+            Diagnostics.log("тап: перелистывание зависло — сброс")
+            resetTurning()
+        }
+        if userCurling {                                           // палец уже тянет страницу — тап не нужен
+            Diagnostics.log("тап: пропущен — страница перелистывается пальцем")
+            return
+        }
+        if turning {                                               // тап во время анимации — запомнить и долистать после
+            pendingTurns = max(-10, min(10, pendingTurns + (forward ? 1 : -1)))
+            return
+        }
         turn(forward: forward, fast: rapid)
     }
     /// Перелистнуть с анимацией; при быстрых тапах — та же анимация, только в 3 раза быстрее
@@ -538,6 +563,14 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
                                 : pageViewController(pageVC, viewControllerBefore: cur)) as? PageViewController
         else { pendingTurns = 0; return }
         turning = true
+        turnStarted = Date()
+        let started = turnStarted
+        // страховка: если iOS не сообщит о конце анимации, через 1,5 с всё равно разблокировать тапы
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self, self.turning, self.turnStarted == started else { return }
+            Diagnostics.log("перелистывание: нет сигнала о конце анимации — сброс")
+            self.resetTurning()
+        }
         // быстрые тапы — быстрый загиб; спокойное листание — чуть медленнее обычного, мягко и плавно
         setCurlSpeed(fast ? 2.6 : 0.8)
         pageVC.setViewControllers([vc], direction: forward ? .forward : .reverse, animated: true) { [weak self] _ in
@@ -557,6 +590,11 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         current = (vc.chapter, vc.page)
         pageChanged()
     }
+    private func resetTurning() {
+        turning = false
+        pendingTurns = 0
+        setCurlSpeed(1)
+    }
     /// Скорость анимации загиба страницы (меняется скорость времени у слоя перелистывания)
     private func setCurlSpeed(_ speed: Float) {
         let layer = pageVC.view.layer
@@ -571,7 +609,7 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         g === sideTap || g === centerTapRecognizer              // свои тапы не мешают выделению; свайп — как обычно
     }
     @objc private func centerTap(_ g: UITapGestureRecognizer) {
-        guard Date().timeIntervalSince(centerTouchStart) < 0.35 else { return }   // долгое нажатие — это выделение
+        guard Date().timeIntervalSince(centerTouchStart) < 0.5 else { return }   // долгое нажатие — это выделение
         if hasSelection && !selectionMadeBy(touchStart: centerTouchStart) { clearSelection(); return }
         clearSelection()
         setChrome(hidden: !chromeHidden)
