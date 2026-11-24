@@ -49,7 +49,7 @@ struct ContinueReadingWidget: Widget {
                 .containerBackground(.clear, for: .widget)
                 .widgetURL(URL(string: "capebook://continue"))
         }
-        .configurationDisplayName("Продолжить чтение")
+        .configurationDisplayName("Read")
         .description("Одно касание — и книга открыта на том месте, где вы остановились.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
