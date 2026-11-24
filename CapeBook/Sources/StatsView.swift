@@ -181,8 +181,17 @@ struct StatsView: View {
                     Button {
                         withAnimation(.snappy) { openedBook = openedBook == b.id ? nil : b.id }
                     } label: {
-                        HStack {
-                            Text(b.title).lineLimit(1).foregroundStyle(.primary)
+                        HStack(alignment: .firstTextBaseline) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(b.title).lineLimit(1).foregroundStyle(.primary)
+                                // сразу видно: сколько времени и сколько дней читали
+                                let mine = store.sessions.filter { $0.bookID == b.id }
+                                if !mine.isEmpty {
+                                    let days = Set(mine.map { readingDay($0.start) }).count
+                                    Text("\(fmt(mine.reduce(0) { $0 + $1.seconds })) · \(days) \(dayWord(days)) чтения")
+                                        .font(.caption).foregroundStyle(.green)
+                                }
+                            }
                             Spacer()
                             if let d = b.readAt { Text(d.formatted(.dateTime.day().month())).foregroundStyle(.secondary) }
                             Image(systemName: "chevron.down")

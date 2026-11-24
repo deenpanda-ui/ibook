@@ -413,6 +413,12 @@ final class ReaderViewController: UIViewController, UIPageViewControllerDataSour
         fresh.chapter = book.chapter
         fresh.offset = book.offset
         fresh.lastOpenedAt = Date()
+        // дошли до последней страницы — книга сама отмечается прочитанной (попадает в статистику)
+        if book.progress >= 0.999, !fresh.isRead {
+            fresh.isRead = true
+            fresh.readAt = Date()
+            Diagnostics.log("книга прочитана: \(fresh.title)")
+        }
         Store.shared.update(fresh)
         book = fresh
     }
